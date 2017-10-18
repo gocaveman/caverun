@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	yaml "bitbucket.org/cwrenard/scraper/jungle-rabbit/src/gopkg.in/yaml.v2"
@@ -17,172 +18,95 @@ func main() {
 	gtk.Init(&os.Args)
 
 	var state State
-	// state.Projects = TestProjects()
 	window := gtk.NewWindow(gtk.WINDOW_TOPLEVEL)
 	window.SetPosition(gtk.WIN_POS_CENTER)
 	window.SetTitle("Cave Runner")
 	window.SetIconName("Cave Runner")
 	window.Connect("destroy", func(ctx *glib.CallbackContext) {
-		fmt.Println("got destroy!", ctx.Data().(string))
 		gtk.MainQuit()
-	}, "foo")
+	})
 
 	//--------------------------------------------------------
 	// GtkVBox
 	//--------------------------------------------------------
 	vbox := gtk.NewVBox(false, 1)
-	// vbox.Add(tab)
-	//--------------------------------------------------------
-	// GtkMenuBar
-	//--------------------------------------------------------
-	menubar := gtk.NewMenuBar()
 
-	//toolbar start
-
+	//GTK toolbar
 	toolbar := gtk.NewToolbar()
 	toolbar.SetStyle(gtk.TOOLBAR_ICONS)
 
 	btnnew := gtk.NewToolButtonFromStock(gtk.STOCK_NEW)
+	btnnew.SetArrowTooltipText("Load a new project")
 	btnclose := gtk.NewToolButtonFromStock(gtk.STOCK_CLOSE)
+	btnclose.SetArrowTooltipText("Close active tab")
 	separator := gtk.NewSeparatorToolItem()
 	btnGlobalSettings := gtk.NewToolButton(nil, "Global Settings")
+	btnGlobalSettings.SetArrowTooltipText("Modify caverunner global settings")
 	btnmenu := gtk.NewMenuToolButtonFromStock("gtk.STOCK_CLOSE")
 	btnmenu.SetArrowTooltipText("This is a tool tip")
 
-	// btnclose.OnClicked()
-	// btncustom.OnClicked()
+	//GTK notebook
+	notebook := gtk.NewNotebook()
 
-	toolmenu := gtk.NewMenu()
-	toolitem := gtk.NewMenuItemWithMnemonic("8")
-	toolitem.Show()
-	toolmenu.Append(toolitem)
-	toolitem = gtk.NewMenuItemWithMnemonic("16")
-	toolitem.Show()
-	toolmenu.Append(toolitem)
-	toolitem = gtk.NewMenuItemWithMnemonic("32")
-	toolitem.Show()
-	toolmenu.Append(toolitem)
-	btnmenu.SetMenu(toolmenu)
+	//handle click events on new and close buttons
+	//opens a project from directory
+	btnnew.OnClicked(func() {
+		OpenProject(&state, window, notebook)
+	})
+	//closes a tab and removes project from state
+	btnclose.OnClicked(func() {
+		if len(state.Projects) != 0 {
+			tab := notebook.GetCurrentPage()
+			notebook.RemovePage(notebook, tab)
+			//this deletes a project from state.Projects slice
+			state.Projects = append(state.Projects[:tab], state.Projects[tab+1:]...)
+		}
+	})
+	//TODO: Make a save button which saves the current project state into a yaml file in the projects directory
+	//btnsave
+	//onclick
+	//get tab
+	//get Project From State
+	//marshal To New Yaml File
+	//Save to disk
+
+	//some menu stuff we're not using right now
+	// toolmenu := gtk.NewMenu()
+	// toolitem := gtk.NewMenuItemWithMnemonic("blue")
+	// toolitem.Show()
+	// toolmenu.Append(toolitem)
+	// toolitem = gtk.NewMenuItemWithMnemonic("green")
+	// toolitem.Show()
+	// toolmenu.Append(toolitem)
+	// toolitem = gtk.NewMenuItemWithMnemonic("red")
+	// toolitem.Show()
+	// toolmenu.Append(toolitem)
+	// btnmenu.SetMenu(toolmenu)
+
+	//adding an button with an image
+	// imagefile := filepath.Join(dir, "../../data/go-gtk-logo.png")
+	// image := gtk.NewImageFromFile(imagefile)
+	// button.SetImage(image)
+	// // framebox1.Add(button)
 
 	toolbar.Insert(btnnew, -1)
 	toolbar.Insert(btnclose, -1)
 	toolbar.Insert(separator, -1)
 	toolbar.Insert(btnGlobalSettings, -1)
-	toolbar.Insert(btnmenu, -1)
+	// toolbar.Insert(btnmenu, -1)
 
-	//--------------------------------------------------------
-	// GtkVPaned
-	//--------------------------------------------------------
-	// vpaned := gtk.NewVPaned()
-
-	// //--------------------------------------------------------
-	// // GtkFrame
-	// //--------------------------------------------------------
-	// frame1 := gtk.NewFrame("")
-	// framebox1 := gtk.NewHBox(false, 1)
-	// frame1.Add(framebox1)
-
-	// frame2 := gtk.NewFrame("")
-	// framebox2 := gtk.NewVBox(false, 1)
-	// frame2.Add(framebox2)
-
-	// //--------------------------------------------------------
-	// // GtkImage
-	// //--------------------------------------------------------
-
-	// label := gtk.NewLabel("Go Binding for GTK")
-	// label.ModifyFontEasy("DejaVu Serif 15")
-
-	button := gtk.NewButtonWithLabel("Choose a project")
-	button.SetSizeRequest(5, 40)
-	dir, _ := filepath.Split(os.Args[0])
-	imagefile := filepath.Join(dir, "../../data/go-gtk-logo.png")
-	image := gtk.NewImageFromFile(imagefile)
-	button.SetImage(image)
-	// framebox1.Add(button)
-
-	// --------------------------------------------------------
-	// GtkStatusbar
-	// --------------------------------------------------------
-	statusbar := gtk.NewStatusbar()
-	context_id := statusbar.GetContextId("Cave Runner")
-	statusbar.Push(context_id, "Cave Runner")
-
-	// framebox2.PackStart(statusbar, false, false, 2)
-
-	//--------------------------------------------------------
-	// GtkTabs
-	//--------------------------------------------------------
-
-	notebook := gtk.NewNotebook()
-	log.Printf("starting project ")
-
-	for _, pjt := range state.Projects {
-		MakeNotebookTab(&pjt, notebook)
-
-	}
-	//--------------------------------------------------------
-	// GtkMenuItem
-	//--------------------------------------------------------
-	cascademenu := gtk.NewMenuItemWithMnemonic("_File")
-	menubar.Append(cascademenu)
-	submenu := gtk.NewMenu()
-	cascademenu.SetSubmenu(submenu)
-
-	var menuitem, menuitem2 *gtk.MenuItem
-	menuitem = gtk.NewMenuItemWithMnemonic("E_xit")
-	menuitem.Connect("activate", func() {
-		gtk.MainQuit()
-	})
-
-	menuitem2 = gtk.NewMenuItemWithMnemonic("L_oad Project")
-	menuitem2.Connect("activate", func() {
-
-		OpenProject(&state, window, notebook)
-
-	})
-	submenu.Append(menuitem2)
-	submenu.Append(menuitem)
-
-	cascademenu = gtk.NewMenuItemWithMnemonic("_Help")
-	menubar.Append(cascademenu)
-	submenu = gtk.NewMenu()
-	cascademenu.SetSubmenu(submenu)
-
-	menuitem = gtk.NewMenuItemWithMnemonic("_About")
-	menuitem.Connect("activate", func() {
-		dialog := gtk.NewAboutDialog()
-		dialog.SetName("Cave Runner")
-		dialog.SetWebsite("https://www.corriganrenard.com")
-		dialog.SetProgramName("Cave Runner")
-
-		dialog.SetLicense("Licence data...")
-		dialog.SetWrapLicense(true)
-		dialog.Run()
-		dialog.Destroy()
-
-	})
-
-	submenu.Append(menuitem)
-
-	btnnew.OnClicked(func() {
-		OpenProject(&state, window, notebook)
-	})
-
-	vbox.PackStart(menubar, false, false, 0)
 	vbox.PackStart(toolbar, false, false, 0)
-
 	vbox.PackStart(notebook, false, false, 0)
-	// framebox1.PackStart(label, false, false, 0)
 
 	//--------------------------------------------------------
 	// Event
 	//--------------------------------------------------------
 	window.Add(vbox)
-
-	window.SetSizeRequest(600, 550)
+	window.SetSizeRequest(900, 600)
 	window.ShowAll()
+
 	gtk.Main()
+
 }
 
 type Project struct {
@@ -192,21 +116,11 @@ type Project struct {
 	Output []string
 }
 
-func TestProjects() []Project {
-
-	var testProjects = []Project{
-		Project{
-			Name: "Testing123",
-			Path: "Cory/Cory/",
-		},
-	}
-	return testProjects
-}
-
 type State struct {
 	Projects []Project
 }
 
+//OpenProject open a file chooser dialog and selects a folder to load as the current project tab
 func OpenProject(state *State, window *gtk.Window, notebook *gtk.Notebook) {
 
 	//--------------------------------------------------------
@@ -215,74 +129,136 @@ func OpenProject(state *State, window *gtk.Window, notebook *gtk.Notebook) {
 	filechooserdialog := gtk.NewFileChooserDialog(
 		"Choose Project...",
 		window,
-		gtk.FILE_CHOOSER_ACTION_OPEN,
+		gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
 		gtk.STOCK_OK,
 		gtk.RESPONSE_ACCEPT)
-	filter := gtk.NewFileFilter()
-	filter.SetName(".yaml")
-	filter.AddPattern("*.yaml")
-	filechooserdialog.AddFilter(filter)
+
+	//not using this filter stuff
+	// filter := gtk.NewFileFilter()
+	// filter.SetName(".yaml")
+	// filter.AddPattern("*.yaml")
+	// filechooserdialog.AddFilter(filter)
+	// filechooserdialog.AddButton("generate yaml", gtk.RESPONSE_NONE).Clicked(func() {
+	// 	generatePath := filechooserdialog.GetFilename()
+
+	//event to run when dir is chosen
 	filechooserdialog.Response(func() {
-		fmt.Println(filechooserdialog.GetFilename())
-		configPath := filechooserdialog.GetFilename()
+		configPath := filechooserdialog.GetCurrentFolder()
+		log.Printf("configpath: %v", configPath)
 		var project *Project
 		if configPath != "" {
-			yamlFile, err := ioutil.ReadFile(configPath)
-			if err != nil {
-				log.Fatal(err)
-			}
+			//check if config file already exists
+			if _, err := os.Stat(configPath + "/caverun.yaml"); !os.IsNotExist(err) {
+				if err != nil {
+					panic(err)
+				}
+				log.Printf("file exists, reading caverun.yaml")
+				yamlFile, err := ioutil.ReadFile(configPath + "/caverun.yaml")
+				if err != nil {
+					log.Fatal(err)
+				}
 
-			log.Printf("yaml file is: %v", yamlFile)
-			err = yaml.Unmarshal(yamlFile, &project)
-			if err != nil {
-				log.Printf("error is: %v", err)
-			}
-			log.Printf("project is: %v", project)
+				log.Printf("yaml file is: %v", yamlFile)
+				err = yaml.Unmarshal(yamlFile, &project)
+				if err != nil {
+					log.Printf("error is: %v", err)
+				}
+				log.Printf("project is: %v", project)
 
-			//loop through state.projects and see if project doesn't already exist
-			projectExists := false
-			for _, v := range state.Projects {
-				if project.Name == v.Name {
-					projectExists = true
-					break
+				//loop through state.projects and see if project doesn't already exist
+				projectExists := false
+				for _, v := range state.Projects {
+					if project.Name == v.Name {
+						projectExists = true
+						break
+					}
+				}
+				if projectExists == false {
+					project.Path = configPath
+					state.Projects = append(state.Projects, *project)
+					log.Printf("stuct: %v", state.Projects)
+
+					MakeNotebookTab(project, notebook, window)
+				} else {
+					filechooserdialog.Destroy()
+					//if project already exists in a tab, tell them
+					dialog := gtk.NewMessageDialog(
+						window,
+						gtk.DIALOG_MODAL,
+						gtk.MESSAGE_INFO,
+						gtk.BUTTONS_OK,
+						project.Name+" is already open. Please choose another project.")
+					dialog.SetTitle("Project open!")
+					dialog.Response(func() {
+						dialog.Destroy()
+					})
+					dialog.Run()
+				}
+
+			} else {
+				log.Printf("file doesn't exist, creating new struct in memory")
+
+				//file does not exist - create new struct in memory
+				project = &Project{
+					Name: filepath.Base(configPath),
+					Path: configPath,
+				}
+
+				//check if a tab is open with the same name
+				projectExists := false
+				for _, v := range state.Projects {
+					if project.Name == v.Name {
+						projectExists = true
+						break
+					}
+
+				}
+				//if no matching tabs are open, add this to state and create tab
+				if projectExists == false {
+					state.Projects = append(state.Projects, *project)
+					log.Printf("stuct: %v", state.Projects)
+
+					MakeNotebookTab(project, notebook, window)
+				} else {
+					filechooserdialog.Destroy()
+					//if project already exists in a tab, tell them and don't add it
+					dialog := gtk.NewMessageDialog(
+						window,
+						gtk.DIALOG_MODAL,
+						gtk.MESSAGE_INFO,
+						gtk.BUTTONS_OK,
+						project.Name+" is already open. Please choose another project.")
+					dialog.SetTitle("Project open!")
+					dialog.Response(func() {
+						dialog.Destroy()
+					})
+					dialog.Run()
 				}
 
 			}
-			if projectExists == false {
-				state.Projects = append(state.Projects, *project)
-				log.Printf("stuct: %v", state.Projects)
 
-				MakeNotebookTab(project, notebook)
-			} else {
-				filechooserdialog.Destroy()
-				dialog := gtk.NewMessageDialog(
-					window,
-					gtk.DIALOG_MODAL,
-					gtk.MESSAGE_INFO,
-					gtk.BUTTONS_OK,
-					project.Name+" already exists. Please choose another project.")
-				dialog.SetTitle("Project Exists!")
-				dialog.Response(func() {
-					dialog.Destroy()
-				})
-				dialog.Run()
-			}
 		}
-		filechooserdialog.Destroy()
+		//if no folders are chosen, don't desroy window, just wait for a folder to be picked
+		if configPath != "" {
+			filechooserdialog.Destroy()
+		}
 
 	})
 	filechooserdialog.Run()
 
 }
 
-func MakeNotebookTab(project *Project, notebook *gtk.Notebook) {
+//MakeNotebookTab makes a tab for a single project including the buttons, widgets, etc.
+//It also updates teh state to include the .yaml project data
+
+func MakeNotebookTab(project *Project, notebook *gtk.Notebook, window *gtk.Window) {
 	tabVbox := gtk.NewVBox(false, 10)
 	fixed := gtk.NewFixed()
+
 	tabLabel := gtk.NewLabel(project.Name)
 	tabLabel.SetSizeRequest(125, 20)
-	notebook.AppendPage(tabVbox, tabLabel)
 
-	//notebook.SetTabLabel(child, tab_label)
+	notebook.AppendPage(tabVbox, tabLabel)
 
 	buttonUpdateDep := gtk.NewButtonWithLabel("Update Dependencies")
 	buttonUpdateDep.SetSizeRequest(175, 50)
@@ -292,10 +268,10 @@ func MakeNotebookTab(project *Project, notebook *gtk.Notebook) {
 	buttonGoGenerate.SetSizeRequest(125, 40)
 	buttonProjectSettings := gtk.NewButtonWithLabel("Project Settings")
 	buttonProjectSettings.SetSizeRequest(150, 45)
-	fixed.Put(buttonUpdateDep, 350, 0)
-	fixed.Put(buttonBuildRun, 350, 70)
-	fixed.Put(buttonGoGenerate, 350, 140)
-	fixed.Put(buttonProjectSettings, 350, 210)
+	fixed.Put(buttonUpdateDep, 650, 0)
+	fixed.Put(buttonBuildRun, 650, 70)
+	fixed.Put(buttonGoGenerate, 650, 140)
+	fixed.Put(buttonProjectSettings, 650, 240)
 
 	//--------------------------------------------------------
 	// GtkTextView
@@ -304,7 +280,7 @@ func MakeNotebookTab(project *Project, notebook *gtk.Notebook) {
 	swin.SetPolicy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
 	swin.SetShadowType(gtk.SHADOW_IN)
 	textview := gtk.NewTextView()
-	textview.SetSizeRequest(540, 100)
+	textview.SetSizeRequest(840, 100)
 	var textWrap gtk.WrapMode
 	textWrap = 3
 
@@ -314,11 +290,11 @@ func MakeNotebookTab(project *Project, notebook *gtk.Notebook) {
 	var start, end gtk.TextIter
 	buffer := textview.GetBuffer()
 	buffer.GetStartIter(&start)
-	buffer.Insert(&start, "Hello there big World!")
+	buffer.Insert(&start, "")
 	buffer.GetEndIter(&end)
-	buffer.Insert(&end, "")
+	buffer.Insert(&end, "Path is: "+project.Path)
 	tag := buffer.CreateTag("bold", map[string]string{
-		"background": "#FF0000", "weight": "700"})
+		"background": "#fff", "weight": "700"})
 	buffer.GetStartIter(&start)
 	buffer.GetEndIter(&end)
 	buffer.ApplyTag(tag, &start, &end)
@@ -327,32 +303,93 @@ func MakeNotebookTab(project *Project, notebook *gtk.Notebook) {
 	buffer.Connect("changed", func() {
 		fmt.Println("changed")
 	})
-	fixed.Put(swin, 30, 280)
+	fixed.Put(swin, 30, 330)
 
+	//go tool functionality starts here
+
+	//update dependencies command (dep ensure)
 	buttonUpdateDep.Connect("clicked", func() {
 		go func() {
-			log.Printf("clicked")
+			//dep ensure
 
 		}()
 	})
+
+	//Build and Run command
 	buttonBuildRun.Connect("clicked", func() {
 		go func() {
-			log.Printf("clicked")
+
+			//TODO: inserting error data into output box
 			buffer.Insert(&end, project.Name)
 
+			//get GOPATH variable
+			gopath := os.Getenv("GOPATH")
+			//go install - setting the directory project dir as stated in state
+			cmdBuild := exec.Command("go", "install")
+			cmdBuild.Dir = project.Path
+			//run the resulting executable
+			cmdRun := exec.Command(gopath + "/bin/" + project.Name)
+
+			outputBuild, err := cmdBuild.CombinedOutput()
+			if err != nil {
+				fmt.Println(fmt.Sprint(err) + ": " + string(outputBuild))
+
+			} else {
+				fmt.Println(string(outputBuild))
+			}
+			log.Printf("running exe file")
+
+			outputRun, err := cmdRun.CombinedOutput()
+			if err != nil {
+				fmt.Println(fmt.Sprint(err) + ": " + string(outputRun))
+
+			} else {
+				fmt.Println(string(outputRun))
+			}
+
 		}()
 	})
+	//Go Generate command
 	buttonGoGenerate.Connect("clicked", func() {
 		go func() {
-			log.Printf("clicked")
+			log.Printf("clicked %v", project.Name)
 
+			// go generate
 		}()
 	})
-	buttonProjectSettings.Connect("clicked", func() {
-		go func() {
-			log.Printf("clicked")
+	//View project settings page
+	buttonProjectSettings.Clicked(func() {
 
-		}()
+		//--------
+		//project settings dialog working
+		//--------
+		settingsDialog := gtk.NewMessageDialog(window, gtk.DIALOG_MODAL, gtk.MESSAGE_OTHER, gtk.BUTTONS_NONE, "")
+		settingsDialog.Connect("destroy", func() { settingsDialog.Destroy() })
+
+		settingsDialog.SetSizeRequest(500, 500)
+		settingsDialog.SetPosition(gtk.WIN_POS_CENTER)
+		//testing checkbuttons
+		generateCheck := gtk.NewCheckButtonWithLabel("compress and minify")
+		fixed := gtk.NewFixed()
+		fixed.Put(generateCheck, 10, 550)
+		scrolledWindow := gtk.NewScrolledWindow(nil, nil)
+		scrolledWindow.AddWithViewPort(fixed)
+		vbox := settingsDialog.GetVBox()
+		vbox.Add(scrolledWindow)
+		settingsDialog.AddButton("Close", gtk.RESPONSE_CLOSE).Clicked(func() {
+			log.Printf("project name is: %v", project.Name)
+		})
+		settingsDialog.AddButton("Save", gtk.RESPONSE_APPLY).Clicked(func() {
+			log.Printf("this is a test of the emergency broadcast system")
+			if generateCheck.GetActive() {
+				log.Printf("generate button checked")
+			}
+
+		})
+		vbox.ShowAll()
+		settingsDialog.Run()
+		settingsDialog.Destroy()
+
 	})
 	tabVbox.PackStart(fixed, false, false, 10)
 	notebook.ShowAll()
