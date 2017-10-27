@@ -120,6 +120,8 @@ type State struct {
 	Projects []Project
 }
 
+var generateArgs []string
+
 //OpenProject open a file chooser dialog and selects a folder to load as the current project tab
 func OpenProject(state *State, window *gtk.Window, notebook *gtk.Notebook) {
 
@@ -265,13 +267,43 @@ func MakeNotebookTab(project *Project, notebook *gtk.Notebook, window *gtk.Windo
 	buttonBuildRun := gtk.NewButtonWithLabel("Build & Run")
 	buttonBuildRun.SetSizeRequest(175, 50)
 	buttonGoGenerate := gtk.NewButtonWithLabel("Go Generate")
-	buttonGoGenerate.SetSizeRequest(125, 40)
+	buttonGoGenerate.SetSizeRequest(100, 40)
 	buttonProjectSettings := gtk.NewButtonWithLabel("Project Settings")
 	buttonProjectSettings.SetSizeRequest(150, 45)
-	fixed.Put(buttonUpdateDep, 650, 0)
-	fixed.Put(buttonBuildRun, 650, 70)
-	fixed.Put(buttonGoGenerate, 650, 140)
-	fixed.Put(buttonProjectSettings, 650, 240)
+	// comboBoxEntry := gtk.NewComboBoxEntryNewText()
+	// comboBoxWithEntry := gtk.NewComboBoxWithEntry()
+	// comboBoxWithEntry.
+	// comboBoxWithEntry.Add(comboBoxEntry)
+	// comboBoxWithEntry.SetSizeRequest(150, 40)
+
+	comboboxentry := gtk.NewComboBoxEntryNewText()
+
+	// comboboxentry.Connect("insert-text", func(ctx *glib.CallbackContext) {
+	// 	a := (*[2000]uint8)(unsafe.Pointer(ctx.Args(0)))
+	// 	p := (*int)(unsafe.Pointer(ctx.Args(2)))
+	// 	i := 0
+	// 	for a[i] != 0 {
+	// 		i++
+	// 	}
+	// 	s := string(a[0:i])
+	// 	if s == "." {
+	// 		if *p == 0 {
+	// 			comboboxentry.StopEmission("insert-text")
+	// 		}
+	// 	} else {
+	// 		_, err := strconv.Atoi(s)
+	// 		if err != nil {
+	// 			comboboxentry.StopEmission("insert-text")
+	// 		}
+	// 	}
+	// 	log.Printf("input is %v\n", comboboxentry.GetActiveText())
+	// })
+
+	fixed.Put(buttonUpdateDep, 550, 0)
+	fixed.Put(buttonBuildRun, 550, 70)
+	fixed.Put(buttonGoGenerate, 550, 140)
+	fixed.Put(buttonProjectSettings, 550, 240)
+	fixed.Put(comboboxentry, 670, 145)
 
 	//--------------------------------------------------------
 	// GtkTextView
@@ -342,9 +374,12 @@ func MakeNotebookTab(project *Project, notebook *gtk.Notebook, window *gtk.Windo
 			outputRun, err := cmdRun.CombinedOutput()
 			if err != nil {
 				fmt.Println(fmt.Sprint(err) + ": " + string(outputRun))
+				buffer.Insert(&end, string(outputRun))
 
 			} else {
 				fmt.Println(string(outputRun))
+				buffer.Insert(&end, string(outputRun))
+
 			}
 
 		}()
@@ -354,7 +389,34 @@ func MakeNotebookTab(project *Project, notebook *gtk.Notebook, window *gtk.Windo
 		go func() {
 			log.Printf("clicked %v", project.Name)
 
+			generateArgExists := false
+			for _, v := range generateArgs {
+				if v == comboboxentry.GetActiveText() {
+					generateArgExists = true
+				}
+			}
+			if generateArgExists == false {
+				generateArgs = append(generateArgs, comboboxentry.GetActiveText())
+				comboboxentry.AppendText(comboboxentry.GetActiveText())
+			}
+
 			// go generate
+			//get GOPATH variable
+			// gopath := os.Getenv("GOPATH")
+			//go install - setting the directory project dir as stated in state
+			cmdGen := exec.Command("go", "generate", comboboxentry.GetActiveText())
+			cmdGen.Dir = project.Path
+			outputGen, err := cmdGen.CombinedOutput()
+			if err != nil {
+				fmt.Println(fmt.Sprint(err) + ": " + string(outputGen))
+				buffer.Insert(&end, string(outputGen))
+
+			} else {
+				fmt.Println(string(outputGen))
+				buffer.Insert(&end, string(outputGen))
+
+			}
+
 		}()
 	})
 	//View project settings page
