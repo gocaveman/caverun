@@ -17,7 +17,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Unable to create window:", err)
 	}
-	win.SetTitle("Add/Remove Widgets Example")
+	win.SetTitle("Cave Runner")
 	win.Connect("destroy", func() {
 		gtk.MainQuit()
 	})
