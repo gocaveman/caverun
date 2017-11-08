@@ -62,6 +62,84 @@ func main() {
 			state.Projects = append(state.Projects[:tab], state.Projects[tab+1:]...)
 		}
 	})
+
+	//closes a tab and removes project from state
+	btnGlobalSettings.OnClicked(func() {
+		//--------
+		//project settings dialog working
+		//--------
+		settingsDialog := gtk.NewMessageDialog(window, gtk.DIALOG_MODAL, gtk.MESSAGE_OTHER, gtk.BUTTONS_NONE, "Global Settings")
+		settingsDialog.Connect("destroy", func() { settingsDialog.Destroy() })
+
+		settingsDialog.SetSizeRequest(500, 500)
+		settingsDialog.SetPosition(gtk.WIN_POS_CENTER)
+
+		//install git button
+		installGit := gtk.NewButtonWithLabel("install git")
+		installGit.Clicked(func() {
+			ok := openBrowser("https://git-scm.com/downloads")
+			if !ok {
+				gtk.NewMessageDialog(window, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK, "Error loading git download page. Please go to https://git-scm.com/downloads to install git")
+			}
+		})
+
+		//install go button
+		installGo := gtk.NewButtonWithLabel("install go")
+		installGo.Clicked(func() {
+			ok := openBrowser("https://golang.org/dl/")
+			if !ok {
+				gtk.NewMessageDialog(window, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK, "Error loading go download page. Please go to https://golang.org/dl/ to install Golang")
+			}
+		})
+
+		//install go button
+		installDocker := gtk.NewButtonWithLabel("install docker")
+		installDocker.Clicked(func() {
+			ok := openBrowser("https://www.docker.com/community-edition#/download")
+			if !ok {
+				gtk.NewMessageDialog(window, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK, "Error loading docker download page. Please go to https://www.docker.com/community-edition#/download to install docker")
+			}
+		})
+
+		//setup workspace
+		setupWorkspace := gtk.NewButtonWithLabel("setup go workspace")
+		setupWorkspace.Clicked(func() {
+			ok := setupGoWorkspace()
+			if ok {
+				log.Println("success")
+			}
+		})
+
+		generateCheck := gtk.NewCheckButtonWithLabel("compress and minify")
+		// frame := gtk.NewFrame("setup")
+		fixed := gtk.NewFixed()
+		// frame.Add(installDocker)
+		// frame.Add(installGit)
+		fixed.Put(installGit, 10, 10)
+		fixed.Put(installGo, 10, 50)
+		fixed.Put(setupWorkspace, 10, 90)
+		fixed.Put(installDocker, 10, 130)
+		fixed.Put(generateCheck, 10, 550)
+
+		scrolledWindow := gtk.NewScrolledWindow(nil, nil)
+		scrolledWindow.AddWithViewPort(fixed)
+		vbox := settingsDialog.GetVBox()
+		vbox.Add(scrolledWindow)
+
+		settingsDialog.AddButton("Close", gtk.RESPONSE_CLOSE).Clicked(func() {
+		})
+		settingsDialog.AddButton("Save", gtk.RESPONSE_APPLY).Clicked(func() {
+			log.Printf("this is a test of the emergency broadcast system")
+			if generateCheck.GetActive() {
+				log.Printf("generate button checked")
+			}
+
+		})
+		vbox.ShowAll()
+		settingsDialog.Run()
+		settingsDialog.Destroy()
+
+	})
 	//TODO: Make a save button which saves the current project state into a yaml file in the projects directory
 	//btnsave
 	//onclick
@@ -425,7 +503,7 @@ func MakeNotebookTab(project *Project, notebook *gtk.Notebook, window *gtk.Windo
 		//--------
 		//project settings dialog working
 		//--------
-		settingsDialog := gtk.NewMessageDialog(window, gtk.DIALOG_MODAL, gtk.MESSAGE_OTHER, gtk.BUTTONS_NONE, "")
+		settingsDialog := gtk.NewMessageDialog(window, gtk.DIALOG_MODAL, gtk.MESSAGE_OTHER, gtk.BUTTONS_NONE, "Project Settings")
 		settingsDialog.Connect("destroy", func() { settingsDialog.Destroy() })
 
 		settingsDialog.SetSizeRequest(500, 500)
