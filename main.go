@@ -2,7 +2,6 @@ package main
 
 import (
 	"container/list"
-	"fmt"
 	"log"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -22,13 +21,14 @@ func main() {
 		gtk.MainQuit()
 	})
 
-	win.Add(windowWidget())
+	win.Add(windowWidget(win))
 	win.ShowAll()
 
 	gtk.Main()
 }
 
-func windowWidget() *gtk.Widget {
+func windowWidget(win *gtk.Window) *gtk.Widget {
+	var state State
 	grid, err := gtk.GridNew()
 	if err != nil {
 		log.Fatal("Unable to create grid:", err)
@@ -60,6 +60,7 @@ func windowWidget() *gtk.Widget {
 	if err != nil {
 		log.Fatal("Unable to create notebook:", err)
 	}
+	notebook.SetSizeRequest(600, 200)
 
 	toolbar, err := gtk.ToolbarNew()
 	// toolbar.SetStyle(gtk.TOOLBAR_ICONS)
@@ -72,8 +73,54 @@ func windowWidget() *gtk.Widget {
 	btnGlobalSettings, err := gtk.ToolButtonNew(nil, "Global Settings")
 	btnGlobalSettings.SetTooltipText("Modify caverunner global settings")
 
-	//GTK notebook
-	// notebook, err := gtk.NotebookNew()
+	btnnew.Connect("clicked", func() {
+		OpenProject(&state, win, notebook)
+	})
+	btnclose.Connect("clicked", func() {
+		if len(state.Projects) != 0 {
+			tab := notebook.GetCurrentPage()
+			notebook.RemovePage(tab)
+			//this deletes a project from state.Projects slice
+			state.Projects = append(state.Projects[:tab], state.Projects[tab+1:]...)
+		}
+	})
+	btnGlobalSettings.Connect("clicked", func() {
+
+		project := &Project{
+			Name: "general-settings",
+			// Path: configPath,
+		}
+
+		//check if a tab is open with the same name
+		tabExists := false
+		for _, v := range state.Projects {
+			if project.Name == v.Name {
+				tabExists = true
+				break
+			}
+
+		}
+		//if no matching tabs are open, add this to state and create tab
+		if tabExists == false {
+			state.Projects = append(state.Projects, *project)
+			log.Printf("stuct: %v", state.Projects)
+
+			MakeSettingsTab(&state, nil, notebook, win)
+		} else {
+			dialog := gtk.MessageDialogNew(
+				win,
+				gtk.DIALOG_MODAL,
+				gtk.MESSAGE_INFO,
+				gtk.BUTTONS_OK,
+				project.Name+" is already open.")
+			dialog.SetTitle("General Settings")
+			// dialog.Response(func() {
+			// 	dialog.Destroy()
+			// })
+			dialog.Run()
+		}
+
+	})
 
 	toolbar.Insert(btnnew, -1)
 	toolbar.Insert(btnclose, -1)
@@ -84,109 +131,7 @@ func windowWidget() *gtk.Widget {
 
 	grid.Attach(notebook, 0, 1, 5, 4)
 
-	// sw.SetHExpand(true)
-	// sw.SetVExpand(true)
-
-	labelsGrid, err := gtk.GridNew()
-	if err != nil {
-		log.Fatal("Unable to create grid:", err)
-	}
-	labelsGrid.SetOrientation(gtk.ORIENTATION_VERTICAL)
-
-	buttonBuildRun, err := gtk.ButtonNewWithLabel("Build & Run")
-	buttonGenerate, err := gtk.ButtonNewWithLabel("Generate")
-	comboGenerate, err := gtk.ComboBoxTextNewWithEntry()
-	buttonDeps, err := gtk.ButtonNewWithLabel("update deps")
-	// space, err := gtk.LabelNew("                    ")
-
-	tabGrid1, err := gtk.GridNew()
-
-	tabGrid1.Attach(buttonBuildRun, -1, 1, 1, 1)
-	tabGrid1.Attach(buttonGenerate, -1, 2, 1, 1)
-	tabGrid1.Attach(comboGenerate, -2, 2, 1, 1)
-
-	tabGrid1.Attach(buttonDeps, -1, 3, 1, 1)
-	tabGrid1.SetRowSpacing(15)
-	tabGrid1.SetMarginTop(20)
-	tabGrid1.SetMarginBottom(20)
-
-	tabGrid1.SetMarginStart(20)
-	tabGrid1.SetMarginEnd(20)
-
-	tabGrid1.SetHAlign(gtk.ALIGN_END)
-	// tabGrid1.Attach(space, 1, 1, 3, 3)
-
-	tabGrid2, err := gtk.GridNew()
-
-	tabGrid3, err := gtk.GridNew()
-
-	tabGrid1.SetOrientation(gtk.ORIENTATION_VERTICAL)
-	tabLabel1, err := gtk.LabelNew("test tab1")
-	tabLabel2, err := gtk.LabelNew("test tab2")
-	tabLabel3, err := gtk.LabelNew("test tab3")
-
-	notebook.AppendPage(tabGrid1, tabLabel1)
-	notebook.AppendPage(tabGrid2, tabLabel2)
-
-	notebook.AppendPage(tabGrid3, tabLabel3)
-
-	labelsGrid.SetHExpand(true)
-
-	insertBtn, err := gtk.ButtonNewWithLabel("Add a label")
-	if err != nil {
-		log.Fatal("Unable to create button:", err)
-	}
-	removeBtn, err := gtk.ButtonNewWithLabel("Remove a label")
-	if err != nil {
-		log.Fatal("Unable to create button:", err)
-	}
-
-	nLabels := 1
-	insertBtn.Connect("clicked", func() {
-		var s string
-		if nLabels == 1 {
-			s = fmt.Sprintf("Inserted %d label.", nLabels)
-		} else {
-			s = fmt.Sprintf("Inserted %d labels.", nLabels)
-		}
-		label, err := gtk.LabelNew(s)
-		if err != nil {
-			log.Print("Unable to create label:", err)
-			return
-		}
-
-		labelList.PushBack(label)
-		labelsGrid.Add(label)
-		label.SetHExpand(true)
-		labelsGrid.ShowAll()
-
-		nLabels++
-	})
-
-	removeBtn.Connect("clicked", func() {
-		e := labelList.Front()
-		if e == nil {
-			log.Print("Nothing to remove")
-			return
-		}
-		lab, ok := labelList.Remove(e).(*gtk.Label)
-		if !ok {
-			log.Print("Element to remove is not a *gtk.Label")
-			return
-		}
-		// (*Widget).Destroy() breaks this label's reference with all
-		// other objects (in this case, the Grid container it was added
-		// to).
-		lab.Destroy()
-
-		// At this point, only Go retains a reference to the GtkLabel.
-		// When the lab variable goes out of scope when this function
-		// returns, at the next garbage collector run, a finalizer will
-		// be run to perform the final unreference and free the widget.
-	})
-
-	// grid.Attach(insertBtn, 0, 2, 1, 1)
-	// grid.Attach(removeBtn, 1, 2, 1, 1)
+	grid.SetSizeRequest(600, 300)
 
 	return &grid.Container.Widget
 }
@@ -215,9 +160,9 @@ func windowWidget() *gtk.Widget {
 
 // 	//handle click events on new and close buttons
 // 	//opens a project from directory
-// 	btnnew.OnClicked(func() {
-// 		OpenProject(&state, window, notebook)
-// 	})
+// btnnew.OnClicked(func() {
+// 	OpenProject(&state, window, notebook)
+// })
 // 	//closes a tab and removes project from state
 // 	btnclose.OnClicked(func() {
 // 		if len(state.Projects) != 0 {
