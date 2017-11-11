@@ -47,22 +47,12 @@ func (ui *UI) WindowWidget() *gtk.Widget {
 	btnnew, err := gtk.ToolButtonNew(nil, "new project")
 
 	btnnew.SetTooltipText("Load a new project")
-	btnclose, err := gtk.ToolButtonNew(nil, "close project")
-	btnclose.SetTooltipText("Close active tab")
 	separator, err := gtk.SeparatorToolItemNew()
 	btnGlobalSettings, err := gtk.ToolButtonNew(nil, "Global Settings")
 	btnGlobalSettings.SetTooltipText("Modify caverunner global settings")
 
 	btnnew.Connect("clicked", func() {
 		ui.OpenProject()
-	})
-	btnclose.Connect("clicked", func() {
-		if len(ui.Projects) != 0 {
-			tab := ui.Notebook.GetCurrentPage()
-			ui.Notebook.RemovePage(tab)
-			//this deletes a project from state.Projects slice
-			ui.Projects = append(ui.Projects[:tab], ui.Projects[tab+1:]...)
-		}
 	})
 	btnGlobalSettings.Connect("clicked", func() {
 
@@ -102,7 +92,6 @@ func (ui *UI) WindowWidget() *gtk.Widget {
 	})
 
 	toolbar.Insert(btnnew, -1)
-	toolbar.Insert(btnclose, -1)
 	toolbar.Insert(separator, -1)
 	toolbar.Insert(btnGlobalSettings, -1)
 
@@ -256,17 +245,31 @@ func (ui *UI) OpenProject() {
 func (ui *UI) MakeNotebookTab(project *Project) {
 
 	buttonBuildRun, err := gtk.ButtonNewWithLabel("Build & Run")
-	buttonGoGenerate, err := gtk.ButtonNewWithLabel("Generate")
-	comboGenerate, err := gtk.ComboBoxTextNewWithEntry()
-	buttonUpdateDep, err := gtk.ButtonNewWithLabel("update deps")
-	buttonProjectSettings, err := gtk.ButtonNewWithLabel("Project Settings")
-
 	if err != nil {
-		log.Printf("error making buttons: %v\n", err)
+		log.Fatalf("error making buttons: %v\n", err)
+	}
+	buttonGoGenerate, err := gtk.ButtonNewWithLabel("Generate")
+	if err != nil {
+		log.Fatalf("error making buttons: %v\n", err)
+	}
+	comboGenerate, err := gtk.ComboBoxTextNewWithEntry()
+	if err != nil {
+		log.Fatalf("error making buttons: %v\n", err)
+	}
+	buttonUpdateDep, err := gtk.ButtonNewWithLabel("update deps")
+	if err != nil {
+		log.Fatalf("error making buttons: %v\n", err)
+	}
+	buttonProjectSettings, err := gtk.ButtonNewWithLabel("Project Settings")
+	if err != nil {
+		log.Fatalf("error making buttons: %v\n", err)
 	}
 	// space, err := gtk.LabelNew("                    ")
 
 	tabGrid1, err := gtk.GridNew()
+	if err != nil {
+		log.Fatalf("error making tab grid: %v\n", err)
+	}
 
 	tabGrid1.Attach(buttonBuildRun, -1, 1, 1, 1)
 	tabGrid1.Attach(buttonGoGenerate, -1, 2, 1, 1)
@@ -285,7 +288,13 @@ func (ui *UI) MakeNotebookTab(project *Project) {
 	// tabGrid1.Attach(space, 1, 1, 3, 3)
 
 	tabLabel1, err := gtk.LabelNew(project.Name)
+	if err != nil {
+		log.Fatalf("error making tab label: %v\n", err)
+	}
 	tabButton, err := gtk.ButtonNewFromIconName("window-close", gtk.ICON_SIZE_BUTTON)
+	if err != nil {
+		log.Fatalf("error making tab button: %v\n", err)
+	}
 
 	tabButton.Connect("clicked", func() {
 		tab := ui.ProjectPos(project.Name)
@@ -297,10 +306,14 @@ func (ui *UI) MakeNotebookTab(project *Project) {
 
 	})
 	tabCloseGrid, err := gtk.GridNew()
+	if err != nil {
+		log.Fatalf("error making tab close grid: %v\n", err)
+	}
 	tabCloseGrid.Attach(tabLabel1, 1, -1, 1, 1)
 	tabCloseGrid.Attach(tabButton, 2, -1, 1, 1)
 	tabCloseGrid.ShowAll()
 
+	//FIXME: returns an int
 	ui.Notebook.AppendPage(tabGrid1, tabCloseGrid)
 
 	// //--------------------------------------------------------
@@ -421,6 +434,10 @@ func (ui *UI) MakeSettingsTab(project *Project) {
 
 	//install go button
 	installGo, err := gtk.ButtonNewWithLabel("install go")
+	if err != nil {
+		log.Fatalf("error making install go button: %v\n", err)
+	}
+
 	installGo.Connect("clicked", func() {
 		ok := openBrowser("https://golang.org/dl/")
 		if !ok {
@@ -430,6 +447,9 @@ func (ui *UI) MakeSettingsTab(project *Project) {
 
 	//install go button
 	installDocker, err := gtk.ButtonNewWithLabel("install docker")
+	if err != nil {
+		log.Fatalf("error making docker button: %v\n", err)
+	}
 	installDocker.Connect("clicked", func() {
 		ok := openBrowser("https://www.docker.com/community-edition#/download")
 		if !ok {
@@ -439,6 +459,9 @@ func (ui *UI) MakeSettingsTab(project *Project) {
 
 	//setup workspace
 	setupWorkspace, err := gtk.ButtonNewWithLabel("setup go workspace")
+	if err != nil {
+		log.Fatalf("error making workspace button: %v\n", err)
+	}
 	setupWorkspace.Connect("clicked", func() {
 		ok := setupGoWorkspace()
 		if ok {
@@ -463,7 +486,13 @@ func (ui *UI) MakeSettingsTab(project *Project) {
 	// tabGrid1.Attach(space, 1, 1, 3, 3)
 
 	tabLabel1, err := gtk.LabelNew("General Settings")
+	if err != nil {
+		log.Fatalf("error making general settings label: %v\n", err)
+	}
 	tabButton, err := gtk.ButtonNewFromIconName("window-close", gtk.ICON_SIZE_BUTTON)
+	if err != nil {
+		log.Fatalf("error making tab close button: %v\n", err)
+	}
 	tabButton.Connect("clicked", func() {
 
 		tab := ui.Notebook.GetCurrentPage()
@@ -473,6 +502,9 @@ func (ui *UI) MakeSettingsTab(project *Project) {
 
 	})
 	tabCloseGrid, err := gtk.GridNew()
+	if err != nil {
+		log.Fatalf("error making tab close grid: %v\n", err)
+	}
 	tabCloseGrid.Attach(tabLabel1, 1, -1, 1, 1)
 	tabCloseGrid.Attach(tabButton, 2, -1, 1, 1)
 	tabCloseGrid.ShowAll()
