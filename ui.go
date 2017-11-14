@@ -1,24 +1,21 @@
 package main
 
 import (
-	"io/ioutil"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
-
-	yaml "gopkg.in/yaml.v2"
 
 	"github.com/gotk3/gotk3/gtk"
 )
 
 type UI struct {
-	Projects     []Project
-	Window       *gtk.Window
-	Notebook     *gtk.Notebook
-	GenerateArgs []string
+	Projects []Project
+	Window   *gtk.Window
+	Notebook *gtk.Notebook
 }
 
-func (ui UI) ProjectPos(value string) int {
+func (ui UI) GetTabByName(value string) int {
 	for p, v := range ui.Projects {
 		if v.Name == value {
 			return p
@@ -29,6 +26,14 @@ func (ui UI) ProjectPos(value string) int {
 
 func NewUI(window *gtk.Window, notebook *gtk.Notebook) *UI {
 	return &UI{Window: window, Notebook: notebook}
+}
+
+type ProjectDupError struct {
+	DupErr string
+}
+
+func (e *ProjectDupError) Error() string {
+	return fmt.Sprintf("Duplicate project error: %s", e.DupErr)
 }
 
 //WindowWidget handles the main window
@@ -52,7 +57,7 @@ func (ui *UI) WindowWidget() *gtk.Widget {
 	btnGlobalSettings.SetTooltipText("Modify caverunner global settings")
 
 	btnnew.Connect("clicked", func() {
-		ui.OpenProject()
+		ui.RunFileChooser()
 	})
 	btnGlobalSettings.Connect("clicked", func() {
 
@@ -104,8 +109,7 @@ func (ui *UI) WindowWidget() *gtk.Widget {
 	return &grid.Container.Widget
 }
 
-//OpenProject open a file chooser dialog and selects a folder to load as the current project tab
-func (ui *UI) OpenProject() {
+func (ui *UI) RunFileChooser() {
 
 	//--------------------------------------------------------
 	// GtkFileChooserDialog
@@ -121,122 +125,89 @@ func (ui *UI) OpenProject() {
 	if err != nil {
 		log.Fatal("error creating filechooser dialog")
 	}
-
 	//event to run when dir is chosen
-
 	ret := filechooserdialog.Run()
-	log.Printf("ret is: %v\n", ret)
+	//cancel button pushed
 	if ret == -6 {
 		filechooserdialog.Destroy()
+		//open button pushed
 	} else if ret == -3 {
-		func() {
-			configPath, err := filechooserdialog.GetCurrentFolder()
-			if err != nil {
-				log.Printf("couldn't get folder. error is: %v\n", err)
-			}
-			log.Printf("configpath: %v", configPath)
-			var project *Project
-			if configPath != "" {
-				//check if config file already exists
-				if _, err := os.Stat(configPath + "/caverun.yaml"); !os.IsNotExist(err) {
-					if err != nil {
-						panic(err)
-					}
-					log.Printf("file exists, reading caverun.yaml")
-					yamlFile, err := ioutil.ReadFile(configPath + "/caverun.yaml")
-					if err != nil {
-						log.Fatal(err)
-					}
-
-					log.Printf("yaml file is: %v", yamlFile)
-					err = yaml.Unmarshal(yamlFile, &project)
-					if err != nil {
-						log.Printf("error is: %v", err)
-					}
-					log.Printf("project is: %v", project)
-
-					//loop through state.projects and see if project doesn't already exist
-					projectExists := false
-					for _, v := range ui.Projects {
-						if project.Name == v.Name {
-							projectExists = true
-							break
-						}
-					}
-					if projectExists == false {
-						project.Path = configPath
-						ui.Projects = append(ui.Projects, *project)
-						log.Printf("stuct: %v", ui.Projects)
-
-						ui.MakeNotebookTab(project)
-					} else {
-						filechooserdialog.Destroy()
-						//if project already exists in a tab, tell them
-						dialog := gtk.MessageDialogNew(
-							ui.Window,
-							gtk.DIALOG_MODAL,
-							gtk.MESSAGE_INFO,
-							gtk.BUTTONS_OK,
-							project.Name+" is already open. Please choose another project.")
-						dialog.SetTitle("Project open!")
-						// dialog.Connect(func() {
-						// 	dialog.Destroy()
-						// })
-						dialog.Run()
-					}
-
-				} else {
-					log.Printf("file doesn't exist, creating new struct in memory")
-
-					//file does not exist - create new struct in memory
-					project = &Project{
-						Name: filepath.Base(configPath),
-						Path: configPath,
-					}
-
-					//check if a tab is open with the same name
-					projectExists := false
-					log.Printf("projects right before append: %v\n", ui.Projects)
-					for _, v := range ui.Projects {
-						if project.Name == v.Name {
-							projectExists = true
-							break
-						}
-
-					}
-					//if no matching tabs are open, add this to state and create tab
-					if projectExists == false {
-						ui.Projects = append(ui.Projects, *project)
-						log.Printf("stuct: %v", ui.Projects)
-
-						ui.MakeNotebookTab(project)
-					} else {
-						filechooserdialog.Destroy()
-						//if project already exists in a tab, tell them and don't add it
-						dialog := gtk.MessageDialogNew(
-							ui.Window,
-							gtk.DIALOG_MODAL,
-							gtk.MESSAGE_INFO,
-							gtk.BUTTONS_OK,
-							project.Name+" is already open. Please choose another project.")
-						dialog.SetTitle("Project open!")
-						// dialog.Response(func() {
-						// 	dialog.Destroy()
-						// })
-						dialog.Run()
-					}
-
-				}
-
-			}
-			//if no folders are chosen, don't desroy window, just wait for a folder to be picked
-			if configPath != "" {
+		configPath, err := filechooserdialog.GetCurrentFolder()
+		if err != nil {
+			log.Printf("couldn't get folder. error is: %v\n", err)
+		}
+		projectName := filepath.Base(configPath)
+		//verify project tab is not open
+		proceed, err := ui.VerifyProject(projectName)
+		if err != nil {
+			//error check for dup project
+			if de, ok := err.(*ProjectDupError); ok {
+				log.Println(de.DupErr)
+				//already open
 				filechooserdialog.Destroy()
+				//if project already exists in a tab, tell them
+				dialog := gtk.MessageDialogNew(
+					ui.Window,
+					gtk.DIALOG_MODAL,
+					gtk.MESSAGE_INFO,
+					gtk.BUTTONS_OK,
+					projectName+" is already open. Please choose another project.")
+				dialog.SetTitle("Project open!")
+				dialog.Run()
 			}
+			log.Printf("error is: %v\n", err)
+		}
+		if proceed {
 
-		}()
+			//if we get to here then the project is not open yet
+			//create project in memory and either populate it or start from scratch
+			var project *Project
+			//check for yaml file
+			if _, err := os.Stat(configPath + "/caverun.yaml"); !os.IsNotExist(err) {
+				if err != nil {
+					panic(err)
+				}
+				//if yaml file is there then open it
+				file, err := os.Open(configPath + "/caverun.yaml")
+				if err != nil {
+					log.Printf("error is %v\n", err)
+				}
+				//make project from yaml
+				project, err = NewProjectFromYaml(file)
+				if err != nil {
+					log.Printf("error is %v\n", err)
+				}
+			} else {
+				//yaml file does not exist - create new empty project
+				project = ui.NewEmptyProject(configPath)
+			}
+			ui.Projects = append(ui.Projects, *project)
+			ui.MakeNotebookTab(project)
+		}
+
+		filechooserdialog.Destroy()
+	}
+}
+
+func (ui *UI) VerifyProject(projectName string) (bool, error) {
+	//check if the project is already open in a tab/memory
+	for _, v := range ui.Projects {
+		if projectName == v.Name {
+			return false, &ProjectDupError{"Project already open."}
+		}
+	}
+	//not open yet
+	return true, nil
+}
+
+func (ui *UI) NewEmptyProject(configPath string) *Project {
+
+	project := &Project{
+		Name: filepath.Base(configPath),
+		Path: configPath,
 	}
 
+	return project
 }
 
 // //MakeNotebookTab makes a tab for a single project including the buttons, widgets, etc.
@@ -256,6 +227,13 @@ func (ui *UI) MakeNotebookTab(project *Project) {
 	if err != nil {
 		log.Fatalf("error making buttons: %v\n", err)
 	}
+
+	//TODO: for loop to add combo items (project.Args) to combo box
+
+	for _, v := range project.Args {
+		comboGenerate.AppendText(v)
+	}
+
 	buttonUpdateDep, err := gtk.ButtonNewWithLabel("update deps")
 	if err != nil {
 		log.Fatalf("error making buttons: %v\n", err)
@@ -297,7 +275,7 @@ func (ui *UI) MakeNotebookTab(project *Project) {
 	}
 
 	tabButton.Connect("clicked", func() {
-		tab := ui.ProjectPos(project.Name)
+		tab := ui.GetTabByName(project.Name)
 
 		ui.Notebook.RemovePage(tab)
 
@@ -364,17 +342,20 @@ func (ui *UI) MakeNotebookTab(project *Project) {
 	//Go Generate command
 	buttonGoGenerate.Connect("clicked", func() {
 		page := ui.Notebook.GetCurrentPage()
+		log.Printf("page is %v\n", page)
 		comboText := comboGenerate.GetActiveText()
-		generateArgExists := false
-		for _, v := range ui.GenerateArgs {
-			if v == comboText {
-				generateArgExists = true
-			}
+
+		exists, err := ui.Projects[page].CheckArgs(comboText)
+		if err != nil {
+			log.Printf("generate args error: %v\n", err)
 		}
-		if generateArgExists == false {
-			ui.GenerateArgs = append(ui.GenerateArgs, comboText)
+
+		//add arg to dropdown
+		if !exists {
+			log.Println("Doesn't Exist!")
 			comboGenerate.AppendText(comboText)
 		}
+
 		ui.Projects[page].Generate(comboText)
 	})
 	// //View project settings page
@@ -495,8 +476,10 @@ func (ui *UI) MakeSettingsTab(project *Project) {
 	}
 	tabButton.Connect("clicked", func() {
 
-		tab := ui.Notebook.GetCurrentPage()
+		tab := ui.GetTabByName(project.Name)
+
 		ui.Notebook.RemovePage(tab)
+
 		//this deletes a project from state.Projects slice
 		ui.Projects = append(ui.Projects[:tab], ui.Projects[tab+1:]...)
 
