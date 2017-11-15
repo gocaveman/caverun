@@ -74,37 +74,25 @@ func (ui *UI) WindowWidget() *gtk.Widget {
 	})
 	btnGlobalSettings.Connect("clicked", func() {
 
-		project := &Project{
-			Name: "general-settings",
-			// Path: configPath,
-		}
+		tabName := "general-settings"
 
-		//check if a tab is open with the same name
-		tabExists := false
-		for _, v := range ui.Projects {
-			if project.Name == v.Name {
-				tabExists = true
-				break
-			}
-
-		}
-		//if no matching tabs are open, add this to state and create tab
-		if tabExists == false {
-			ui.Projects = append(ui.Projects, *project)
-			log.Printf("stuct: %v", ui.Projects)
-			ui.MakeSettingsTab(project)
-		} else {
+		tab := ui.GetTabByName(tabName)
+		if tab >= 0 {
+			//already open
+			//duplicate tab message dialog
 			dialog := gtk.MessageDialogNew(
 				ui.Window,
 				gtk.DIALOG_MODAL,
 				gtk.MESSAGE_INFO,
 				gtk.BUTTONS_OK,
-				project.Name+" is already open.")
-			dialog.SetTitle("General Settings")
-			// dialog.Response(func() {
-			// 	dialog.Destroy()
-			// })
+				tabName+" is already open.")
+			dialog.SetTitle("Already open!")
 			dialog.Run()
+		} else {
+			ui.MakeSettingsTab(tabName)
+			ui.Notebook.SetCurrentPage(len(ui.Projects))
+			ui.Projects = append(ui.Projects, Project{Name: tabName})
+			//append tab to projects here
 		}
 
 	})
@@ -151,25 +139,21 @@ func (ui *UI) RunFileChooser() {
 		}
 		projectName := filepath.Base(configPath)
 		//verify project tab is not open
-		proceed, err := ui.VerifyProject(projectName)
-		if err != nil {
-			//error check for dup project
-			if de, ok := err.(*ProjectDupError); ok {
-				log.Println(de.DupErr)
-				//already open
-				filechooserdialog.Destroy()
-				//duplicate tab message dialog
-				dialog := gtk.MessageDialogNew(
-					ui.Window,
-					gtk.DIALOG_MODAL,
-					gtk.MESSAGE_INFO,
-					gtk.BUTTONS_OK,
-					projectName+" is already open. Please choose another project.")
-				dialog.SetTitle("Project open!")
-				dialog.Run()
-			}
-		}
-		if proceed {
+		tab := ui.GetTabByName(projectName)
+		if tab >= 0 {
+			//already open
+			filechooserdialog.Destroy()
+			//duplicate tab message dialog
+			dialog := gtk.MessageDialogNew(
+				ui.Window,
+				gtk.DIALOG_MODAL,
+				gtk.MESSAGE_INFO,
+				gtk.BUTTONS_OK,
+				projectName+" is already open. Please choose another project.")
+			dialog.SetTitle("Project open!")
+			dialog.Run()
+
+		} else {
 
 			//if we get to here then the project is not open yet
 			//create project in memory and either populate it from yaml or start from scratch
@@ -195,24 +179,26 @@ func (ui *UI) RunFileChooser() {
 				//yaml file does not exist - create new empty project
 				project = ui.NewEmptyProject(configPath)
 			}
-			ui.Projects = append(ui.Projects, *project)
 			ui.MakeNotebookTab(project)
+			ui.Notebook.SetCurrentPage(len(ui.Projects))
+			ui.Projects = append(ui.Projects, *project)
+
 		}
 
 		filechooserdialog.Destroy()
 	}
 }
 
-func (ui *UI) VerifyProject(projectName string) (bool, error) {
-	//check if the project is already open in a tab/memory
-	for _, v := range ui.Projects {
-		if projectName == v.Name {
-			return false, &ProjectDupError{"Project already open."}
-		}
-	}
-	//not open yet
-	return true, nil
-}
+// func (ui *UI) VerifyProject(projectName string) (bool, error) {
+// 	//check if the project is already open in a tab/memory
+// 	for _, v := range ui.Projects {
+// 		if projectName == v.Name {
+// 			return false, &ProjectDupError{"Project already open."}
+// 		}
+// 	}
+// 	//not open yet
+// 	return true, nil
+// }
 
 func (ui *UI) NewEmptyProject(configPath string) *Project {
 
@@ -411,7 +397,7 @@ func (ui *UI) MakeNotebookTab(project *Project) {
 
 }
 
-func (ui *UI) MakeSettingsTab(project *Project) {
+func (ui *UI) MakeSettingsTab(tabName string) {
 	tabGrid1, err := gtk.GridNew()
 
 	//install git button
@@ -490,7 +476,107 @@ func (ui *UI) MakeSettingsTab(project *Project) {
 	}
 	tabButton.Connect("clicked", func() {
 
-		tab := ui.GetTabByName(project.Name)
+		tab := ui.GetTabByName(tabName)
+
+		ui.Notebook.RemovePage(tab)
+
+		//this deletes a project from state.Projects slice
+		ui.Projects = append(ui.Projects[:tab], ui.Projects[tab+1:]...)
+
+	})
+	tabCloseGrid, err := gtk.GridNew()
+	if err != nil {
+		log.Fatalf("error making tab close grid: %v\n", err)
+	}
+	tabCloseGrid.Attach(tabLabel1, 1, -1, 1, 1)
+	tabCloseGrid.Attach(tabButton, 2, -1, 1, 1)
+	tabCloseGrid.ShowAll()
+
+	ui.Notebook.AppendPage(tabGrid1, tabCloseGrid)
+	ui.Notebook.ShowAll()
+}
+
+func (ui *UI) MakeGettingStartedTab(tabName string) {
+	ui.Projects = append(ui.Projects, Project{Name: "Getting Started"})
+	tabGrid1, err := gtk.GridNew()
+
+	//install git button
+	installGit, err := gtk.ButtonNewWithLabel("install git")
+	if err != nil {
+		log.Printf("error making buttons: %v\n", err)
+	}
+
+	installGit.Connect("clicked", func() {
+		ok := openBrowser("https://git-scm.com/downloads")
+		if !ok {
+			gtk.MessageDialogNew(ui.Window, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK, "Error loading git download page. Please go to https://git-scm.com/downloads to install git")
+		}
+	})
+
+	//install go button
+	installGo, err := gtk.ButtonNewWithLabel("install go")
+	if err != nil {
+		log.Fatalf("error making install go button: %v\n", err)
+	}
+
+	installGo.Connect("clicked", func() {
+		ok := openBrowser("https://golang.org/dl/")
+		if !ok {
+			gtk.MessageDialogNew(ui.Window, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK, "Error loading go download page. Please go to https://golang.org/dl/ to install Golang")
+		}
+	})
+
+	//install go button
+	installDocker, err := gtk.ButtonNewWithLabel("install docker")
+	if err != nil {
+		log.Fatalf("error making docker button: %v\n", err)
+	}
+	installDocker.Connect("clicked", func() {
+		ok := openBrowser("https://www.docker.com/community-edition#/download")
+		if !ok {
+			gtk.MessageDialogNew(ui.Window, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK, "Error loading docker download page. Please go to https://www.docker.com/community-edition#/download to install docker")
+		}
+	})
+
+	//setup workspace
+	setupWorkspace, err := gtk.ButtonNewWithLabel("setup go workspace")
+	if err != nil {
+		log.Fatalf("error making workspace button: %v\n", err)
+	}
+	setupWorkspace.Connect("clicked", func() {
+		ok := setupGoWorkspace()
+		if ok {
+			log.Println("success")
+		}
+	})
+
+	tabGrid1.Attach(installGit, -1, 1, 1, 1)
+	tabGrid1.Attach(installDocker, -1, 2, 1, 1)
+	tabGrid1.Attach(installGo, -1, 3, 1, 1)
+	tabGrid1.Attach(setupWorkspace, -1, 4, 1, 1)
+	// tabGrid1.Attach(buttonProjectSettings, -1, 4, 1, 1)
+
+	tabGrid1.SetRowSpacing(15)
+	tabGrid1.SetMarginTop(20)
+	tabGrid1.SetMarginBottom(20)
+
+	tabGrid1.SetMarginStart(20)
+	tabGrid1.SetMarginEnd(20)
+
+	tabGrid1.SetHAlign(gtk.ALIGN_START)
+	// tabGrid1.Attach(space, 1, 1, 3, 3)
+
+	tabLabel1, err := gtk.LabelNew("Getting Started")
+	if err != nil {
+		log.Fatalf("error making general settings label: %v\n", err)
+	}
+	tabButton, err := gtk.ButtonNewFromIconName("window-close", gtk.ICON_SIZE_BUTTON)
+	if err != nil {
+		log.Fatalf("error making tab close button: %v\n", err)
+	}
+	tabButton.Connect("clicked", func() {
+
+		tab := ui.GetTabByName("Getting Started")
 
 		ui.Notebook.RemovePage(tab)
 

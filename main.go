@@ -11,5 +11,7 @@ func main() {
 
 	ui.Window.Add(ui.WindowWidget())
 	ui.Window.ShowAll()
+	ui.MakeGettingStartedTab("Getting Started")
+
 	gtk.Main()
 }
