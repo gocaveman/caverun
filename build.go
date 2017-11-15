@@ -82,17 +82,20 @@ func (project *Project) BuildRun() {
 	//go install - setting the directory project dir as stated in state
 	cmdBuild := exec.Command("go", "install")
 	cmdBuild.Dir = project.Path
-	//run the resulting executable
-	cmdRun := exec.Command(gopath + "/bin/" + project.Name)
 
 	outputBuild, err := cmdBuild.CombinedOutput()
 	if err != nil {
 		fmt.Println(fmt.Sprint(err) + ": " + string(outputBuild))
+		return
 
 	} else {
 		fmt.Println(string(outputBuild))
 	}
-	log.Printf("running exe file")
+	log.Printf("running %v\n", project.Name)
+
+	//run the resulting executable
+
+	cmdRun := exec.Command(gopath + "/bin/" + project.Name)
 
 	outputRun, err := cmdRun.CombinedOutput()
 	if err != nil {

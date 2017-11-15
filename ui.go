@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -39,14 +38,6 @@ func NewUI() *UI {
 	})
 
 	return &UI{Window: window, Notebook: notebook}
-}
-
-type ProjectDupError struct {
-	DupErr string
-}
-
-func (e *ProjectDupError) Error() string {
-	return fmt.Sprintf("Duplicate project error: %s", e.DupErr)
 }
 
 //WindowWidget handles the main window
@@ -189,17 +180,6 @@ func (ui *UI) RunFileChooser() {
 	}
 }
 
-// func (ui *UI) VerifyProject(projectName string) (bool, error) {
-// 	//check if the project is already open in a tab/memory
-// 	for _, v := range ui.Projects {
-// 		if projectName == v.Name {
-// 			return false, &ProjectDupError{"Project already open."}
-// 		}
-// 	}
-// 	//not open yet
-// 	return true, nil
-// }
-
 func (ui *UI) NewEmptyProject(configPath string) *Project {
 
 	project := &Project{
@@ -291,7 +271,6 @@ func (ui *UI) MakeNotebookTab(project *Project) {
 	tabCloseGrid.Attach(tabButton, 2, -1, 1, 1)
 	tabCloseGrid.ShowAll()
 
-	//FIXME: returns an int
 	ui.Notebook.AppendPage(tabGrid1, tabCloseGrid)
 
 	// //--------------------------------------------------------
@@ -337,7 +316,7 @@ func (ui *UI) MakeNotebookTab(project *Project) {
 	//Build and Run command
 	buttonBuildRun.Connect("clicked", func() {
 		page := ui.Notebook.GetCurrentPage()
-		ui.Projects[page].BuildRun()
+		go func() { ui.Projects[page].BuildRun() }()
 	})
 	//Go Generate command
 	buttonGoGenerate.Connect("clicked", func() {
