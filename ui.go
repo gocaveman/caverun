@@ -24,7 +24,20 @@ func (ui UI) GetTabByName(value string) int {
 	return -1
 }
 
-func NewUI(window *gtk.Window, notebook *gtk.Notebook) *UI {
+func NewUI() *UI {
+	window, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	notebook, err := gtk.NotebookNew()
+	if err != nil {
+		log.Fatal(err)
+	}
+	window.SetTitle("Cave Runner")
+	window.Connect("destroy", func() {
+		gtk.MainQuit()
+	})
+
 	return &UI{Window: window, Notebook: notebook}
 }
 
@@ -145,7 +158,7 @@ func (ui *UI) RunFileChooser() {
 				log.Println(de.DupErr)
 				//already open
 				filechooserdialog.Destroy()
-				//if project already exists in a tab, tell them
+				//duplicate tab message dialog
 				dialog := gtk.MessageDialogNew(
 					ui.Window,
 					gtk.DIALOG_MODAL,
@@ -155,12 +168,11 @@ func (ui *UI) RunFileChooser() {
 				dialog.SetTitle("Project open!")
 				dialog.Run()
 			}
-			log.Printf("error is: %v\n", err)
 		}
 		if proceed {
 
 			//if we get to here then the project is not open yet
-			//create project in memory and either populate it or start from scratch
+			//create project in memory and either populate it from yaml or start from scratch
 			var project *Project
 			//check for yaml file
 			if _, err := os.Stat(configPath + "/caverun.yaml"); !os.IsNotExist(err) {
@@ -172,11 +184,13 @@ func (ui *UI) RunFileChooser() {
 				if err != nil {
 					log.Printf("error is %v\n", err)
 				}
+				defer file.Close()
 				//make project from yaml
 				project, err = NewProjectFromYaml(file)
 				if err != nil {
 					log.Printf("error is %v\n", err)
 				}
+
 			} else {
 				//yaml file does not exist - create new empty project
 				project = ui.NewEmptyProject(configPath)
