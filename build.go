@@ -76,9 +76,9 @@ func NewProjectFromYaml(r io.Reader) (*Project, error) {
 
 }
 
-func (project *Project) BuildRun() {
+func (project *Project) Build() ([]byte, error) {
 	//get GOPATH variable
-	gopath := os.Getenv("GOPATH")
+	// gopath := os.Getenv("GOPATH")
 	//go install - setting the directory project dir as stated in state
 	cmdBuild := exec.Command("go", "install")
 	cmdBuild.Dir = project.Path
@@ -86,11 +86,20 @@ func (project *Project) BuildRun() {
 	outputBuild, err := cmdBuild.CombinedOutput()
 	if err != nil {
 		fmt.Println(fmt.Sprint(err) + ": " + string(outputBuild))
-		return
+		return outputBuild, err
 
 	} else {
 		fmt.Println(string(outputBuild))
+		fmt.Println("build successful")
+
+		return outputBuild, nil
 	}
+
+}
+func (project *Project) Run() ([]byte, error) {
+	//get GOPATH variable
+	gopath := os.Getenv("GOPATH")
+
 	log.Printf("running %v\n", project.Name)
 
 	//run the resulting executable
@@ -100,10 +109,12 @@ func (project *Project) BuildRun() {
 	outputRun, err := cmdRun.CombinedOutput()
 	if err != nil {
 		fmt.Println(fmt.Sprint(err) + ": " + string(outputRun))
+		return outputRun, err
 		// buffer.Insert(&end, string(outputRun))
 
 	} else {
 		fmt.Println(string(outputRun))
+		return outputRun, nil
 		// buffer.Insert(&end, string(outputRun))
 
 	}

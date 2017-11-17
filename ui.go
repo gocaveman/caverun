@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -199,6 +200,7 @@ func (ui *UI) MakeNotebookTab(project *Project) {
 	if err != nil {
 		log.Fatalf("error making buttons: %v\n", err)
 	}
+
 	buttonGoGenerate, err := gtk.ButtonNewWithLabel("Generate")
 	if err != nil {
 		log.Fatalf("error making buttons: %v\n", err)
@@ -228,6 +230,7 @@ func (ui *UI) MakeNotebookTab(project *Project) {
 	if err != nil {
 		log.Fatalf("error making tab grid: %v\n", err)
 	}
+	// tabGrid1.SetHAlign(gtk.ALIGN_FILL)
 
 	tabGrid1.Attach(buttonBuildRun, -1, 1, 1, 1)
 	tabGrid1.Attach(buttonGoGenerate, -1, 2, 1, 1)
@@ -244,6 +247,8 @@ func (ui *UI) MakeNotebookTab(project *Project) {
 
 	tabGrid1.SetHAlign(gtk.ALIGN_END)
 	// tabGrid1.Attach(space, 1, 1, 3, 3)
+
+	// nb.SetHExpand(true)
 
 	tabLabel1, err := gtk.LabelNew(project.Name)
 	if err != nil {
@@ -276,33 +281,56 @@ func (ui *UI) MakeNotebookTab(project *Project) {
 	// //--------------------------------------------------------
 	// // GtkTextView
 	// //--------------------------------------------------------
-	// swin := gtk.NewScrolledWindow(nil, nil)
+	// adj, err := gtk.AdjustmentNew(value, lower, upper, stepIncrement, pageIncrement, pageSize)
+	swin, err := gtk.ScrolledWindowNew(nil, nil)
+	if err != nil {
+		log.Printf("error making scrolled window: %v\n", err)
+	}
 	// swin.SetPolicy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
 	// swin.SetShadowType(gtk.SHADOW_IN)
-	// textview := gtk.NewTextView()
-	// textview.SetSizeRequest(840, 100)
-	// var textWrap gtk.WrapMode
-	// textWrap = 3
 
-	// textview.SetWrapMode(textWrap)
+	table, err := gtk.TextTagTableNew()
+	tag, err := gtk.TextTagNew("bold")
+	table.Add(tag)
+	buf, err := gtk.TextBufferNew(table)
+	textview, err := gtk.TextViewNewWithBuffer(buf)
+	if err != nil {
+		log.Printf("error making textview : %v\n", err)
+	}
+	var textWrap gtk.WrapMode
+	textWrap = 3
 
-	// textview.SetEditable(false)
-	// var start, end gtk.TextIter
-	// buffer := textview.GetBuffer()
-	// buffer.GetStartIter(&start)
-	// buffer.Insert(&start, "")
-	// buffer.GetEndIter(&end)
-	// buffer.Insert(&end, "Path is: "+project.Path)
-	// tag := buffer.CreateTag("bold", map[string]string{
-	// 	"background": "#fff", "weight": "700"})
-	// buffer.GetStartIter(&start)
-	// buffer.GetEndIter(&end)
-	// buffer.ApplyTag(tag, &start, &end)
-	// swin.Add(textview)
+	textview.SetWrapMode(textWrap)
 
-	// buffer.Connect("changed", func() {
-	// 	fmt.Println("changed")
-	// })
+	textview.SetEditable(false)
+	var end *gtk.TextIter
+	end = buf.GetEndIter()
+	// start = buf.GetStartIter()
+	buf.Insert(end, "Project: "+project.Name+" \nPath is: "+project.Path)
+
+	swin.Add(textview)
+	swin.SetSizeRequest(600, 100)
+
+	buf.Connect("changed", func() {
+		fmt.Println("changed")
+		// adj := swin.GetVAdjustment()
+		// adj.SetValue(adj.GetUpper() + 1000)
+	})
+	textview.Connect("changed", func() {
+		fmt.Println("changed")
+		adj := swin.GetVAdjustment()
+		adj.SetValue(adj.GetUpper())
+	})
+
+	tabGrid1.Attach(swin, -3, 5, 3, 1)
+	// tabGrid1.AttachNextTo(swin, buttonProjectSettings, gtk.POS_BOTTOM, 2, 2)
+	// tabGrid1.SetHExpand(true)
+
+	// GdkColor color;
+	// gtk_widget_realize(window);
+	// gtk_style_lookup_color(gtk_widget_get_style(window), "bg_color", &color);
+	// gtk_widget_modify_base(textview, GTK_STATE_NORMAL, &color);
+
 	// fixed.Put(swin, 30, 330)
 
 	//go tool functionality starts here
@@ -316,7 +344,41 @@ func (ui *UI) MakeNotebookTab(project *Project) {
 	//Build and Run command
 	buttonBuildRun.Connect("clicked", func() {
 		page := ui.Notebook.GetCurrentPage()
-		go func() { ui.Projects[page].BuildRun() }()
+		buf.Insert(end, "\nBuilding...\n")
+
+		output, err := ui.Projects[page].Build()
+		if err != nil {
+			buf.Insert(end, err.Error()+"\n")
+			buf.Insert(end, string(output[:])+"\n")
+
+			// scrolled := textview.ScrollToIter(end, 0.0, true, 0.0, 0.0)
+			// log.Printf("did we scroll? %v\n", scrolled)
+
+		} else {
+			buf.Insert(end, string(output[:])+"Build Successful!\n")
+			buf.Insert(end, string(output[:])+"\n")
+
+			// scrolled := textview.ScrollToIter(end, 0.0, true, 0.0, 0.0)
+			// // scrolled := textview.ScrollToMark(textview.ScrollMarkOnscreen(mark), 0.0, false, 0.0, 0.0)
+
+			// log.Printf("did we scroll? %v\n", scrolled)
+
+			go func() {
+				outputRun, err := ui.Projects[page].Run()
+				if err != nil {
+					log.Printf("serror is: %v\n", err.Error())
+				}
+
+				buf.Insert(end, string(outputRun[:]))
+
+				// scrolled := textview.ScrollToIter(end, 0.0, true, 0.0, 0.0)
+				// log.Printf("did we scroll? %v\n", scrolled)
+
+			}()
+		}
+
+		adj := swin.GetVAdjustment()
+		adj.SetValue(adj.GetUpper())
 	})
 	//Go Generate command
 	buttonGoGenerate.Connect("clicked", func() {
