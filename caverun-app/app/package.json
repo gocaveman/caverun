@@ -1,0 +1,12 @@
+{
+  "name": "caverun-app",
+  "productName": "Cave Runner",
+  "description": "Caveman tool for run projects during local development",
+  "version": "0.1.0",
+  "copyright": "© 2017 Caveman Project",
+  "license": "MIT",
+  "main": "main.js",
+  "devDependencies": {
+    "electron-winstaller": "^2.5.2"
+  }
+}

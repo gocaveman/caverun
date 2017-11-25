@@ -1,0 +1,36 @@
+{
+  "name": "caverun-app",
+  "productName": "Cave Runner",
+  "description": "Caveman tool for run projects during local development",
+  "version": "0.1.0",
+  "copyright": "© 2017 Caveman Project",
+  "license": "MIT",
+  "main": "app/main.js",
+  "build": {
+    "appId": "net.gocaveman.caverun-app",
+    "asar": true,
+    "asarUnpack": [
+      "caverun-srv.exe"
+    ],
+    "files": [
+      "*.js",
+      "*.html",
+      "caverun-srv.exe",
+      "node_modules/**/*",
+      "public/**/*",
+      "package.json"
+    ]
+  },
+  "scripts": {
+    "postinstall": "install-app-deps",
+    "start": "node_modules/.bin/electron .",
+    "debug": "node_modules/.bin/electron . -debug",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "release": "build"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^1.7.9",
+    "electron-builder": "^19.40.0"
+  }
+}
