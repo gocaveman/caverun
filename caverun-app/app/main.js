@@ -3,6 +3,7 @@ const { app, BrowserWindow, Menu, MenuItem, dialog, } = require('electron');
 const path = require('path');
 const url = require('url');
 const child_process = require('child_process');
+// const dev_tools = require('electron-debug')({showDevTools: true});
 
 let debugFlag = false;
 for (let i in process.argv) {
@@ -66,7 +67,7 @@ app.getPath('userData');
 
 }
 
-// global reference of all open windows
+// global reference of all open windowIDGenerators
 let wins = [];
 
 function openNewBrowserWindow() {
@@ -76,9 +77,9 @@ function openNewBrowserWindow() {
     win.webContents.uid = windowIDGenerator();
 
 	// Open the DevTools in debug mode
-	if (debugFlag) {
+	// if (debugFlag) {
 		win.webContents.openDevTools();
-	}
+	// }
 
 	// Emitted when the window is closed.
 	win.on('close', function () {
@@ -210,7 +211,6 @@ if (shouldQuit) {
   return;
 }
 
-
 // In main process.
 const {ipcMain} = require('electron')
 
@@ -221,4 +221,6 @@ const {ipcMain} = require('electron')
 ipcMain.on('open-new-window', function(){
      openNewBrowserWindow();
 });
+
+
 
