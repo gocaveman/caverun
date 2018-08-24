@@ -7,7 +7,7 @@
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/vuetify@1.1.14/dist/vuetify.min.css">
 
 <style>
-#app .v-toolbar__content {
+#app .application--wrap > .v-toolbar > .v-toolbar__content {
 	background: #4E1A2D;
 }
 #app .v-footer {
@@ -267,6 +267,8 @@ shoulder meatloaf capicola turducken flank corned beef. Flank filet mignon burgd
       </v-container>
 
       <v-container fluid fill-height v-if="screen=='go_generate'">
+
+      	<!--
       	<div>go generate screen</div>
 
       	<ul>
@@ -276,6 +278,121 @@ shoulder meatloaf capicola turducken flank corned beef. Flank filet mignon burgd
       		<li>console output</li>
       		<li>need to remember which one's have been checked (including saving to file? hm, maybe we need a separate status file separate from the config - like sublime) so that generate+build+run can know what to operate on</li>
       	</ul>
+        -->
+
+		  <v-layout row>
+		    <v-flex xs12>
+		      <v-card>
+		        <v-toolbar color="light-blue" dark>
+		          <!-- <v-toolbar-side-icon></v-toolbar-side-icon> -->
+
+		          <v-toolbar-title>Go Generate Packages</v-toolbar-title>
+
+		          <v-spacer></v-spacer>
+
+		          <v-btn icon>
+		            <v-icon>search</v-icon>
+		          </v-btn>
+
+		          <v-btn color="info">
+		          	Generate ✓ed
+		          </v-btn>
+
+<!-- 					<v-tooltip bottom>
+		          		<v-btn icon
+		          			slot="activator"
+		          			>
+		            		<v-icon>input</v-icon>
+		          		</v-btn>
+						<span>Generate Selected Packages</span>
+					</v-tooltip>
+ -->
+					<!-- <v-tooltip bottom> -->
+			          	<v-btn icon>
+			            	<v-icon>refresh</v-icon>
+			          	</v-btn>
+						<!-- <span>Refresh Package list</span> -->
+					<!-- </v-tooltip> -->
+
+		        </v-toolbar>
+
+		        <v-list subheader>
+		          <v-subheader inset>Packages</v-subheader>
+
+		          <v-list-tile
+		            key="something"
+		            @click=""
+		          >
+		            <!-- avatar -->
+
+		            <v-list-tile-avatar>
+		              <!-- <v-icon :class="[item.iconClass]">{{ item.icon }}</v-icon> -->
+
+						<v-checkbox
+							v-model="checkbox"
+						></v-checkbox>
+
+		            </v-list-tile-avatar>
+
+		            <v-list-tile-content>
+
+		            	<v-list-tile-title>
+
+						path/of/a/package/here
+
+						</v-list-tile-title>
+
+
+		              <!-- <v-list-tile-title>{{ item.title }}</v-list-tile-title> -->
+		              <!-- <v-list-tile-sub-title>{{ item.subtitle }}</v-list-tile-sub-title> -->
+		            </v-list-tile-content>
+
+		            <v-list-tile-action>
+		              <v-btn>
+		              	Generate
+		              </v-btn>
+		              <!-- <v-btn icon ripple> -->
+		                <!-- <v-icon color="grey lighten-1">info</v-icon> -->
+		              <!-- </v-btn> -->
+		            </v-list-tile-action>
+		          </v-list-tile>
+
+
+<!-- 		          <v-divider inset></v-divider>
+
+		          <v-subheader inset>Files</v-subheader>
+
+		          <v-list-tile
+		            v-for="item in items2"
+		            :key="item.title"
+		            avatar
+		            @click=""
+		          >
+		            <v-list-tile-avatar>
+		              <v-icon :class="[item.iconClass]">{{ item.icon }}</v-icon>
+		            </v-list-tile-avatar>
+
+		            <v-list-tile-content>
+		              <v-list-tile-title>{{ item.title }}</v-list-tile-title>
+		              <v-list-tile-sub-title>{{ item.subtitle }}</v-list-tile-sub-title>
+		            </v-list-tile-content>
+
+		            <v-list-tile-action>
+		              <v-btn icon ripple>
+		                <v-icon color="grey lighten-1">info</v-icon>
+		              </v-btn>
+		            </v-list-tile-action>
+		          </v-list-tile>
+ -->
+
+		        </v-list>
+		      </v-card>
+
+		          <div>when you generate a console should probably show up, docked to the bottom and closable, showing the output</div>
+		      
+		    </v-flex>
+		  </v-layout>
+
       </v-container>
 
       <v-container fluid fill-height v-if="screen=='cavegen'">
@@ -319,8 +436,9 @@ shoulder meatloaf capicola turducken flank corned beef. Flank filet mignon burgd
       		<li>Main package name (automatic where possible)</li>
       		<li>Execution Mode - normal or docker-compose (docker compose will build normally but cross compile to linux amd64 and then execute using the docker compose instead of running directly</li>
       		<li>Additional packages to go install (useful for sublime autocomplete, etc.)</li>
-      		<li>Custom build commands to just make into buttons on the build screen</li>
+      		<li>Custom build commands to just make into buttons on the build screen (option to say which platform(s) each button shows on - so you can have a windows custom thing and a linux/mac custom thing?)</li>
       		<li>Build tags</li>
+      		<li>Run cmdline flags</li>
       		<li>Browse to this URL if it builds & runs correctly</li>
       		<li>Button to close the project (remove it from drop down)</li>
       	</ul>
@@ -422,14 +540,14 @@ var app_vue = new Vue({
     	splitConsoleStyle: '',
 
     	// temp
-    	lorem: 'Lorem ipsum dolor sit amet, mel at clita quando. Te sit oratio vituperatoribus, nam ad ipsum posidonium mediocritatem, explicari dissentiunt cu mea. Repudiare disputationi vim in, mollis iriure nec cu, alienum argumentum ius ad. Pri eu justo aeque torquatos.',
+    	// lorem: 'Lorem ipsum dolor sit amet, mel at clita quando. Te sit oratio vituperatoribus, nam ad ipsum posidonium mediocritatem, explicari dissentiunt cu mea. Repudiare disputationi vim in, mollis iriure nec cu, alienum argumentum ius ad. Pri eu justo aeque torquatos.',
 
   	})
 });
 
 
 var handleWindowResize = function() {
-	var toolbarH = document.querySelector('.v-toolbar').offsetHeight;
+	var toolbarH = document.querySelector('#app .application--wrap > .v-toolbar').offsetHeight;
 	var footerH = document.querySelector('.v-footer').offsetHeight;
 	var usableH = window.innerHeight - (toolbarH+footerH) - 50;
 	app_vue.splitContentStyle = 'height:'+parseInt(usableH/2)+'px';
