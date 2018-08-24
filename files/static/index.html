@@ -13,6 +13,14 @@
 #app .v-footer {
 	background: #4E1A2D;
 }
+#app .caverun-console {
+	background: black;
+	color: white;
+	padding: 5px;
+	font-family: monospace;
+	white-space: pre;
+	overflow: scroll;
+}
 </style>
 
 </head>
@@ -35,7 +43,7 @@
             <v-icon large>build</v-icon>
           </v-list-tile-action>
           <v-list-tile-content>
-            <v-list-tile-title>Build</v-list-tile-title>
+            <v-list-tile-title>Build &amp; Run</v-list-tile-title>
           </v-list-tile-content>
         </v-list-tile>
 
@@ -54,6 +62,15 @@
           </v-list-tile-action>
           <v-list-tile-content>
             <v-list-tile-title>Cavegen</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+
+        <v-list-tile @click="screen='docker'">
+          <v-list-tile-action>
+            <v-icon large>cloud</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>
+            <v-list-tile-title>Docker</v-list-tile-title>
           </v-list-tile-content>
         </v-list-tile>
 
@@ -102,34 +119,236 @@
     </v-toolbar>
     <v-content>
 
-      <v-container fluid fill-height v-if="screen=='welcome'">
-      	welcome screen
+      <v-container fluid grid-list-md text-xs-center v-if="screen=='welcome'">
+
+		<v-layout row wrap>
+			<v-flex xs12>
+
+				<v-card dark color="primary">
+					<v-card-text class="px-0">
+						
+						<h1>Welcome to Caverun</h1>
+
+						<div>Get started by selecting an existing application
+						or generating a new one.</div>
+
+					</v-card-text>
+				</v-card>
+
+			</v-flex>
+
+			<v-flex xs6>
+				<v-card dark color="primary">
+					<v-card-text>
+			        	<v-icon x-large>folder_open</v-icon>
+			        	<div>Open Existing Project</div>
+					</v-card-text>
+				</v-card>
+			</v-flex>
+
+			<v-flex xs6>
+				<v-card dark color="primary">
+					<v-card-text>
+			        	<v-icon x-large>create_new_folder</v-icon>
+			        	<div>Create New Project</div>
+					</v-card-text>
+				</v-card>
+			</v-flex>
+
+			<v-flex xs12>
+				<v-card>
+
+			        <v-list subheader>
+
+			          <v-subheader inset>Recent Projects</v-subheader>
+
+			          <v-list-tile
+			            v-for="project in recent_projects"
+			            :key="project.display_name"
+			            avatar
+			            @click=""
+			          >
+			            <v-list-tile-action>
+			              <v-icon large>folder_open</v-icon>
+			            </v-list-tile-action>
+
+			            <v-list-tile-content>
+			              <v-list-tile-title v-text="project.display_name"></v-list-tile-title>
+			              <v-list-tile-sub-title>Mon 20 Aug 2018 3:45pm</v-list-tile-sub-title>
+			            </v-list-tile-content>
+
+			            <v-list-tile-avatar>
+			              <!-- <img :src="project.avatar"> -->
+			            </v-list-tile-avatar>
+			          </v-list-tile>
+			        </v-list>
+				</v-card>
+
+			</v-flex>
+		</v-layout>
+
+      	
       </v-container>
       	
-      <v-container fluid fill-height v-if="screen=='build'">
-      	build screen
+      <v-container fluid fill-height grid-list-md v-if="screen=='build'">
+
+		<!--
+      	<div>build/run screen</div>
+      	<ul>
+      		<li>go get button (only needed if no go.mod)</li>
+      		<li>build button</li>
+      		<li>run button</li>
+      		<li>build+run button</li>
+      		<li>generate+build+run button</li>
+      		<li>console output - including streaming back as it runs</li>
+      	</ul>
+		-->
+
+		<v-layout row wrap>
+      		<v-flex xs12>
+
+		      	<div class="caverun-content" :style="splitContentStyle">
+		      		
+		      		<h1>Build & Run</h1>
+
+		      		<hr/>
+
+		      		<v-layout align-left>
+    					<v-flex xs12 >
+		      				<v-btn color="primary">Build</v-btn>
+		      				<v-btn color="primary">Run</v-btn>
+		      				<v-btn color="primary">Go Generate</v-btn>
+		      				<v-btn color="primary">Go Get</v-btn>
+		      			</v-flex>
+		      		</v-layout>
+		      		<v-layout align-left>
+    					<v-flex xs12 >
+		      				<v-btn color="info">Build & Run</v-btn>
+		      				<v-btn color="primary">Generate, Build & Run</v-btn>
+		      			</v-flex>
+		      		</v-layout>
+		      		<v-layout align-left>
+    					<v-flex xs12 >
+		      				<v-btn color="success">Custom Action 1</v-btn>
+		      				<v-btn color="success">Custom Action 2</v-btn>
+		      			</v-flex>
+		      		</v-layout>
+
+		      	</div>
+
+		      	<!-- NOTE: for auto scrolling: https://medium.com/@heatherbooker/how-to-auto-scroll-to-the-bottom-of-a-div-415e967e7a24 -->
+		      	<!-- NOTE: this really should be a component... -->
+		      	<div class="caverun-console" :style="splitConsoleStyle">Bacon ipsum dolor amet short ribs tail jerky t-bone, kielbasa turkey ham pastrami kevin bresaola ribeye pig flank ball tip. Doner pork loin meatball biltong spare ribs jerky kevin brisket capicola
+frankfurter flank ball tip pork chop leberkas jowl. Flank beef ribs turducken, doner ham hock frankfurter meatloaf pork swine andouille shoulder biltong. Alcatra ribeye drumstick short loin ham hock pancetta fatback short ribs ham frankfurter tail 
+beef ribs. Meatball pastrami t-bone prosciutto spare ribs pork belly turkey drumstick kielbasa short ribs meatloaf pork chop tail hamburger. Tongue swine boudin, 
+brisket chicken kevin hamburger cow tenderloin short ribs pork chop salami.
+
+Ham pork chop pastrami hamburger boudin filet mignon, beef ribs short loin. Beef ribs turkey cow buffalo burgdoggen andouille. Leberkas pork belly chicken tri-tip turkey corned beef. Bresaola strip steak t-bone, ham hock pancetta buffalo tail meatloaf hamburger cupim. Jerky jowl shoulder 
+picanha, turkey turducken filet mignon buffalo biltong beef ribs meatball tri-tip alcatra. 
+Pork buffalo kevin, cow swine shank filet mignon short loin boudin biltong pastrami chuck. Cow brisket beef ribs shank tail corned beef.
+
+Ham pancetta jowl, tenderloin pig bacon pastrami fatback meatloaf turducken tail. Meatloaf beef ribs cupim, pork loin flank ham hock swine fatback short ribs filet mignon. Meatball capicola 
+pork corned beef pig ball tip porchetta leberkas flank tri-tip pork loin salami. Jowl meatloaf salami, pig bresaola flank turducken spare ribs ground round beef ribs. Turducken sausage doner 
+short ribs ham hock pork loin. Bresaola shankle brisket ball tip meatloaf, hamburger andouille short loin tri-tip filet mignon meatball sausage.
+
+Pork chop kevin meatball, frankfurter t-bone shoulder salami pork belly jowl sausage. 
+Capicola chuck chicken turkey. Biltong tri-tip strip steak bresaola, tenderloin ham beef ribs picanha pork belly jowl sirloin pork landjaeger flank. Jowl picanha jerky chicken bacon, meatball shoulder prosciutto. Meatloaf tail ribeye, short ribs pork loin venison pork hamburger shank t-bone kielbasa sirloin kevin.
+
+Swine jerky short loin, kielbasa flank shoulder ham alcatra tongue drumstick chicken
+ frankfurter strip steak. Beef brisket venison pork loin jerky t-bone pork belly chicken. 
+Rump prosciutto shank pork, t-bone bresaola hamburger flank. Alcatra burgdoggen pastrami 
+jowl drumstick. Buffalo ground round turkey tenderloin corned beef short ribs burgdoggen 
+pig shankle landjaeger. Swine cupim sausage, ribeye porchetta buffalo t-bone short loin 
+shoulder meatloaf capicola turducken flank corned beef. Flank filet mignon burgdoggen tail doner.</div>
+
+      		</v-flex>
+      	</v-layout>
+
       </v-container>
 
       <v-container fluid fill-height v-if="screen=='go_generate'">
-      	go generate screen
+      	<div>go generate screen</div>
+
+      	<ul>
+      		<li>button to scan</li>
+      		<li>list of packages with //go:generate</li>
+      		<li>each with a checkbox and a separate Generate button, select all/none; Generate All button</li>
+      		<li>console output</li>
+      		<li>need to remember which one's have been checked (including saving to file? hm, maybe we need a separate status file separate from the config - like sublime) so that generate+build+run can know what to operate on</li>
+      	</ul>
       </v-container>
 
       <v-container fluid fill-height v-if="screen=='cavegen'">
-      	cavegen screen
+      	<div>cavegen screen</div>
+      	<ul>
+      		<li>options/icon/list of what to generate</li>
+      		<li>each one has a small config screen so it's easy to punch in the options,
+      		sensible defaults</li>
+      		<li>button to run and shows output</li>
+      		<li>warn if the user is about to clobber an existing file</li>
+      	</ul>
+
+      </v-container>
+
+      <v-container fluid fill-height v-if="screen=='docker'">
+      	<div>docker screen</div>
+      	<ul>
+      		<li>shows basic docker status</li>
+      		<li>status of containers related to project</li>
+      		<li>controls to stop/start/restart containers (stop all also), and to run docker compose</li>
+      	</ul>
       </v-container>
 
       <v-container fluid fill-height v-if="screen=='git'">
-      	git screen
+      	<div>git screen</div>
+      	<ul>
+      		<li>git status, auto refreshes? basically show current branch and what's changed</li>
+      		<li>need a way to link to remote (github, etc.)</li>
+      		<li>common operations: show diff (in console? or maybe just modal, if it had colors that'd be cool) commit everything with message, undo all edits, push, pull; make sure it doesn't clobber stuff if it's in a funky state</li>
+      	</ul>
       </v-container>
 
       <v-container fluid fill-height v-if="screen=='settings'">
-      	project settings screen
+      	<div>project settings screen</div>
+
+      	<ul>
+      		<li>Caverun project file (read only)</li>
+      		<li>Project dir (relative to project file where possible)</li>
+      		<li>GOPATH (should have good automatic value)</li>
+      		<li>Path to run from (relative to project file where possible)</li>
+      		<li>Main package name (automatic where possible)</li>
+      		<li>Execution Mode - normal or docker-compose (docker compose will build normally but cross compile to linux amd64 and then execute using the docker compose instead of running directly</li>
+      		<li>Additional packages to go install (useful for sublime autocomplete, etc.)</li>
+      		<li>Custom build commands to just make into buttons on the build screen</li>
+      		<li>Build tags</li>
+      		<li>Browse to this URL if it builds & runs correctly</li>
+      		<li>Button to close the project (remove it from drop down)</li>
+      	</ul>
+
       </v-container>
 
       <v-container fluid fill-height v-if="screen=='caverun_config'">
-      	overall caverun configuration screen
+      	<div>overall caverun configuration screen</div>
+
+      	<ul>
+      		<li>go executable path</li>
+      		<li>we need a separate screen which handles all the install stuff
+      		  - go, git, c compiler (especially on windows), goimports, docker; and
+      		it needs to come up initially when the user first runs and nothing
+      		is installed (or a key component is missing)</li>
+      		<li>Should offer to update old versions of things - especially Go</li>
+      		<li>application log file with rotation options</li>
+      	</ul>
+
       </v-container>
 
+      <v-container fluid fill-height v-if="screen=='new_project'">
+      	<div>new project, empty or from template, each template can have some options (corresponding to the cavegen command)</div>
+      </v-container>
+
+      <v-container fluid fill-height v-if="screen=='file_browser'">
+      	<div>file browser for opening/saving, etc</div>
+      </v-container>
 <!--    
       <v-container fluid fill-height>
 
@@ -152,7 +371,7 @@
 
     </v-content>
     <v-footer app>
-      <span class="white--text">&nbsp;&nbsp;&copy; ${currentYear}</span>
+      <span class="white--text">&nbsp;&nbsp;&copy; ${current_year}</span>
     </v-footer>
   </v-app>
 </div>
@@ -189,10 +408,35 @@ var app_vue = new Vue({
 	el: '#app',
 	data: () => ({
     	drawer: null,
-    	currentYear: new Date().getFullYear(),
+    	current_year: new Date().getFullYear(),
+
     	screen: 'welcome',
+
+    	recent_projects: [
+    		{display_name: "blue-widgets-inc"},
+    		{display_name: "monkey-hat-factory"},
+    		{display_name: "taco-emporium-employee-time-tracker"},
+    	],
+
+    	splitContentStyle: '',
+    	splitConsoleStyle: '',
+
+    	// temp
+    	lorem: 'Lorem ipsum dolor sit amet, mel at clita quando. Te sit oratio vituperatoribus, nam ad ipsum posidonium mediocritatem, explicari dissentiunt cu mea. Repudiare disputationi vim in, mollis iriure nec cu, alienum argumentum ius ad. Pri eu justo aeque torquatos.',
+
   	})
 });
+
+
+var handleWindowResize = function() {
+	var toolbarH = document.querySelector('.v-toolbar').offsetHeight;
+	var footerH = document.querySelector('.v-footer').offsetHeight;
+	var usableH = window.innerHeight - (toolbarH+footerH) - 50;
+	app_vue.splitContentStyle = 'height:'+parseInt(usableH/2)+'px';
+	app_vue.splitConsoleStyle = 'height:'+parseInt(usableH/2)+'px';
+}
+handleWindowResize();
+window.addEventListener('resize', handleWindowResize);
 
 </script>
 

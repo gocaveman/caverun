@@ -41,6 +41,9 @@ func main() {
 
 	mainURL := fmt.Sprintf("http://127.0.0.1:%s/index.html", port)
 	if *debug {
+		log.Printf("Main URL: %s", mainURL)
+	}
+	if *debug {
 		// https://github.com/zserge/webview#debugging-and-development-tips
 		if runtime.GOOS == "windows" {
 			mainURL += "#firebug" // TODO: can we use WebView.Bind() to expose settings instead?
@@ -49,6 +52,7 @@ func main() {
 
 	settings := webview.Settings{
 		URL:       mainURL,
+		Title:     "caverun",
 		Width:     1024,
 		Height:    660,
 		Resizable: true,
@@ -63,6 +67,14 @@ func main() {
 type MainHandler struct{}
 
 func (ws *MainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	// TODO: looks like all the browsers in question support websockets,
+	// which is probably going to be the simplest way to message back
+	// and forth between Go and the UI, rather than messing around
+	// with fetch() polyfills and maybe SSE for pushing events, or
+	// doing the webview.Bind() approach and hoping it handles complex
+	// data without issues (and still doesn't provide a way to
+	// push to the browser).
 
 	fpath := path.Join("/static", path.Clean("/"+r.URL.Path))
 
