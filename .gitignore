@@ -13,3 +13,6 @@
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
 
+# development files contained hard coded local paths, should not be in repo
+*-dev.go
+

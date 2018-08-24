@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>caverun</title>
+
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/vuetify@1.1.14/dist/vuetify.min.css">
+
+<style>
+#app .v-toolbar__content {
+	background: #4E1A2D;
+}
+#app .v-footer {
+	background: #4E1A2D;
+}
+</style>
+
+</head>
+<body>
+
+<div id="app">
+  <v-app id="inspire">
+    <v-navigation-drawer
+      fixed
+      v-model="drawer"
+      mobile-break-point="400"
+      clipped
+      app
+    >
+      <!-- mini-variant -->
+      <v-list>
+
+        <v-list-tile @click="screen='build'">
+          <v-list-tile-action>
+            <v-icon large>build</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>
+            <v-list-tile-title>Build</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+
+        <v-list-tile @click="screen='go_generate'">
+          <v-list-tile-action>
+            <v-icon large>input</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>
+            <v-list-tile-title>Go Generate</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+
+        <v-list-tile @click="screen='cavegen'">
+          <v-list-tile-action>
+            <v-icon large>offline_bolt</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>
+            <v-list-tile-title>Cavegen</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+
+        <v-list-tile @click="screen='git'">
+          <v-list-tile-action>
+            <v-icon large>restore</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>
+            <v-list-tile-title>Git</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+
+        <v-list-tile @click="screen='settings'">
+          <v-list-tile-action>
+            <v-icon large>settings</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>
+            <v-list-tile-title>Settings</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+
+      </v-list>
+    </v-navigation-drawer>
+    <v-toolbar color="indigo" dark fixed app clipped-left>
+
+      <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+      <v-toolbar-title>cave<em>run</em></v-toolbar-title>
+
+	  <v-spacer></v-spacer>
+
+	      	<v-btn icon @click="screen='welcome'">
+	      		<v-icon>add_box</v-icon>
+	      	</v-btn>
+
+	    	<v-btn flat>
+				<v-select
+		          :items="items"
+		          label="Project"
+		        ></v-select>
+	    	</v-btn>
+
+	      	<v-btn icon @click="screen='caverun_config'">
+	      		<v-icon>settings_applications</v-icon>
+	      	</v-btn>
+
+    </v-toolbar>
+    <v-content>
+
+      <v-container fluid fill-height v-if="screen=='welcome'">
+      	welcome screen
+      </v-container>
+      	
+      <v-container fluid fill-height v-if="screen=='build'">
+      	build screen
+      </v-container>
+
+      <v-container fluid fill-height v-if="screen=='go_generate'">
+      	go generate screen
+      </v-container>
+
+      <v-container fluid fill-height v-if="screen=='cavegen'">
+      	cavegen screen
+      </v-container>
+
+      <v-container fluid fill-height v-if="screen=='git'">
+      	git screen
+      </v-container>
+
+      <v-container fluid fill-height v-if="screen=='settings'">
+      	project settings screen
+      </v-container>
+
+      <v-container fluid fill-height v-if="screen=='caverun_config'">
+      	overall caverun configuration screen
+      </v-container>
+
+<!--    
+      <v-container fluid fill-height>
+
+     <v-layout
+          justify-center
+          align-center
+        >
+          <v-flex text-xs-center>
+            <v-tooltip left>
+              <v-btn icon large :href="source" target="_blank" slot="activator">
+                <v-icon large>code</v-icon>
+              </v-btn>
+              <span>Source</span>
+            </v-tooltip>
+          </v-flex>
+        </v-layout>
+      </v-container>
+
+ -->
+
+    </v-content>
+    <v-footer app>
+      <span class="white--text">&nbsp;&nbsp;&copy; ${currentYear}</span>
+    </v-footer>
+  </v-app>
+</div>
+
+<script src="https://unpkg.com/vue@2.5.17/dist/vue.js"></script>
+<script src="https://unpkg.com/vuex@3.0.1/dist/vuex.js"></script>
+<script src="https://unpkg.com/vuetify@1.1.14/dist/vuetify.min.js"></script>
+
+<script>
+if (window.location.hash == "#firebug") {
+	document.writeln('<script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"><'+'/'+'sc'+'ript>');
+}
+</script>
+
+<script>
+
+// doesn't work - requires the server side stuff... blarg
+// Vue.use(Vuetify, {
+// 	theme: {
+// 		primary: "#880E4F",
+// 		secondary: "#AD1457",
+// 		accent: "#C62828",
+// 		error: "#f44336",
+// 		warning: "#ffeb3b",
+// 		info: "#2196f3",
+// 		success: "#4caf50"
+// 	},
+// });
+
+console.log("Starting app...")
+
+var app_vue = new Vue({
+	delimiters: ['${','}'],
+	el: '#app',
+	data: () => ({
+    	drawer: null,
+    	currentYear: new Date().getFullYear(),
+    	screen: 'welcome',
+  	})
+});
+
+</script>
+
+</body>
+</html>
