@@ -16,3 +16,5 @@
 # development files contained hard coded local paths, should not be in repo
 *-dev.go
 
+# mac stuff
+.DS_Store
