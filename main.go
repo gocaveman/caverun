@@ -75,6 +75,11 @@ func (ws *MainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// doing the webview.Bind() approach and hoping it handles complex
 	// data without issues (and still doesn't provide a way to
 	// push to the browser).
+	// TODO: we'll also need to secure the endpoint somehow, probably would
+	// work to generate a random key and Bind() that and require it
+	// in each request as a security precaution.  Doesn't prevent sniffing
+	// but that's probably fine, still prevents unwanted apps from having
+	// direct access.
 
 	fpath := path.Join("/static", path.Clean("/"+r.URL.Path))
 

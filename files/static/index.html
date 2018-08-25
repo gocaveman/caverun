@@ -56,7 +56,7 @@
           </v-list-tile-content>
         </v-list-tile>
 
-        <v-list-tile @click="screen='cavegen'">
+        <v-list-tile @click="screen='cavegen';subscreen=''">
           <v-list-tile-action>
             <v-icon large>offline_bolt</v-icon>
           </v-list-tile-action>
@@ -137,7 +137,7 @@
 
 			</v-flex>
 
-			<v-flex xs6>
+			<v-flex xs4>
 				<v-card dark color="primary">
 					<v-card-text>
 			        	<v-icon x-large>folder_open</v-icon>
@@ -146,7 +146,16 @@
 				</v-card>
 			</v-flex>
 
-			<v-flex xs6>
+			<v-flex xs4>
+				<v-card dark color="primary">
+					<v-card-text>
+			        	<v-icon x-large>cloud</v-icon>
+			        	<div>Open from URL</div>
+					</v-card-text>
+				</v-card>
+			</v-flex>
+
+			<v-flex xs4>
 				<v-card dark color="primary">
 					<v-card-text>
 			        	<v-icon x-large>create_new_folder</v-icon>
@@ -388,14 +397,191 @@ shoulder meatloaf capicola turducken flank corned beef. Flank filet mignon burgd
 		        </v-list>
 		      </v-card>
 
-		          <div>when you generate a console should probably show up, docked to the bottom and closable, showing the output</div>
-		      
+		          <div><br/>when you generate a console should probably show up, docked to the bottom and closable, showing the output</div>
+
 		    </v-flex>
 		  </v-layout>
 
-      </v-container>
+      </v-container> 
 
-      <v-container fluid fill-height v-if="screen=='cavegen'">
+
+      <v-container fluid grid-list-md text-xs-center v-if="screen=='cavegen'">
+
+		<v-layout row wrap>
+		    <v-flex xs12 >
+
+		      <v-card>
+
+			      <v-toolbar color="light-blue" dark>
+			          <v-toolbar-title>Cavegen - Add Stuff to Your App</v-toolbar-title>
+			      </v-toolbar>
+
+			  </v-card>
+
+			</v-flex>
+		</v-layout>
+
+		<v-layout row wrap v-if="subscreen==''">
+
+			<v-flex xs4 @click="subscreen='rest_controller'">
+				<v-card dark color="primary">
+					<v-card-text>
+			        	<v-icon x-large>folder_open</v-icon>
+			        	<div>REST Controller</div>
+					</v-card-text>
+				</v-card>
+			</v-flex>
+
+			<v-flex xs4>
+				<v-card dark color="primary">
+					<v-card-text>
+			        	<v-icon x-large>cloud</v-icon>
+			        	<div>Model Object</div>
+					</v-card-text>
+				</v-card>
+			</v-flex>
+
+			<v-flex xs4>
+				<v-card dark color="primary">
+					<v-card-text>
+			        	<v-icon x-large>create_new_folder</v-icon>
+			        	<div>Store CRUD</div>
+					</v-card-text>
+				</v-card>
+			</v-flex>
+
+			<v-flex xs4>
+				<v-card dark color="primary">
+					<v-card-text>
+			        	<v-icon x-large>create_new_folder</v-icon>
+			        	<div>Store</div>
+					</v-card-text>
+				</v-card>
+			</v-flex>
+
+		</v-layout>
+
+
+		<v-layout row wrap text-xs-left v-if="subscreen=='rest_controller'">
+
+			<v-flex xs12 >
+
+				<h3>REST CRUD Controller</h3>
+
+			  <v-form ref="form" v-model="valid" lazy-validation>
+			    <v-text-field
+			      v-model="name"
+			      :counter="64"
+			      label="Model Name"
+			      required
+			    ></v-text-field>
+			    <v-text-field
+			      v-model="filename"
+			      label="File Name"
+			      required
+			    ></v-text-field>
+			    <v-text-field
+			      v-model="store_data_type"
+			      label="Store Data Type"
+			      hint="Data type of the store, defaults to '*store.Store' or '*Store', depending on package"
+			      persistent-hint
+			    ></v-text-field>
+<!-- 			    <v-select
+			      v-model="whatever_options"
+			      label="Taco Bell"
+			    ></v-select> -->
+			    <v-checkbox
+			      hint="Use Interface is intended for controllers which need to be extended.  Generally, if you are writing a library where the behavior of this controller might need to be modified by the application it runs in, you should enable this. If you are making your own application, you should leave it disabled in order to avoid unneeded code."
+			      persistent-hint
+			      v-model="checkbox"
+			      label="Use Interface"
+			    ></v-checkbox>
+
+			    <v-btn
+			      color="primary"
+			      @click="submit"
+			    >
+			      CREATE
+			    </v-btn>
+			    <v-btn @click="clear">CLEAR</v-btn>
+			  </v-form>
+
+			</v-flex>
+
+		</v-layout>
+
+<!--
+		          <v-layout row wrap>
+
+					<v-flex xs4>
+						<v-card dark color="primary">
+							<v-card-text>
+					        	<v-icon x-large>folder_open</v-icon>
+					        	<div>REST Controller</div>
+							</v-card-text>
+						</v-card>
+					</v-flex>
+
+					<v-flex xs4>
+						<v-card dark color="primary">
+							<v-card-text>
+					        	<v-icon x-large>cloud</v-icon>
+					        	<div>Model Object</div>
+							</v-card-text>
+						</v-card>
+					</v-flex>
+
+					<v-flex xs4>
+						<v-card dark color="primary">
+							<v-card-text>
+					        	<v-icon x-large>create_new_folder</v-icon>
+					        	<div>Store CRUD</div>
+							</v-card-text>
+						</v-card>
+					</v-flex>
+
+					<v-flex xs4>
+						<v-card dark color="primary">
+							<v-card-text>
+					        	<v-icon x-large>create_new_folder</v-icon>
+					        	<div>Store</div>
+							</v-card-text>
+						</v-card>
+					</v-flex>
+
+		          </v-layout>
+-->
+
+<!--
+		        <v-card-actions>
+		          <v-select :items="items" v-model="size" label="Size"></v-select>
+		          <v-spacer></v-spacer>
+		        </v-card-actions>
+		        <v-container v-bind="{ [`grid-list-${size}`]: true }" fluid>
+		          <v-layout row wrap>
+		            <v-flex
+		              v-for="n in 9"
+		              :key="n"
+		              xs4
+		            >
+		              <v-card flat tile>
+		                <v-card-media
+		                  :src="`https://unsplash.it/150/300?image=${Math.floor(Math.random() * 100) + 1}`"
+		                  height="150px"
+		                ></v-card-media>
+		              </v-card>
+		            </v-flex>
+		          </v-layout>
+		        </v-container>
+-->
+
+
+<!-- 		      </v-card>
+		    </v-flex>
+		  </v-layout>
+ -->
+
+      	<!--
       	<div>cavegen screen</div>
       	<ul>
       		<li>options/icon/list of what to generate</li>
@@ -404,6 +590,7 @@ shoulder meatloaf capicola turducken flank corned beef. Flank filet mignon burgd
       		<li>button to run and shows output</li>
       		<li>warn if the user is about to clobber an existing file</li>
       	</ul>
+      	-->
 
       </v-container>
 
@@ -529,6 +716,7 @@ var app_vue = new Vue({
     	current_year: new Date().getFullYear(),
 
     	screen: 'welcome',
+    	subscreen: '',
 
     	recent_projects: [
     		{display_name: "blue-widgets-inc"},
