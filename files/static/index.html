@@ -26,6 +26,10 @@
 </head>
 <body>
 
+<script>
+	// alert(window.navigator.userAgent);
+</script>
+
 <div id="app">
   <v-app id="inspire">
     <v-navigation-drawer
@@ -638,7 +642,7 @@ shoulder meatloaf capicola turducken flank corned beef. Flank filet mignon burgd
       	<ul>
       		<li>go executable path</li>
       		<li>we need a separate screen which handles all the install stuff
-      		  - go, git, c compiler (especially on windows), goimports, docker; and
+      		  - go, git, c compiler (especially on windows - consider http://tdm-gcc.tdragon.net/), goimports, docker; and
       		it needs to come up initially when the user first runs and nothing
       		is installed (or a key component is missing)</li>
       		<li>Should offer to update old versions of things - especially Go</li>
@@ -681,9 +685,27 @@ shoulder meatloaf capicola turducken flank corned beef. Flank filet mignon burgd
   </v-app>
 </div>
 
+<script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+
+<script>
+if (!Object.prototype.values) {
+	Object.prototype.values = function(obj) {
+	    var res = [];
+	    for (var i in obj) {
+	        if (obj.hasOwnProperty(i)) {
+	            res.push(obj[i]);
+	        }
+	    }
+	    return res;
+	};
+}
+</script>
+
 <script src="https://unpkg.com/vue@2.5.17/dist/vue.js"></script>
 <script src="https://unpkg.com/vuex@3.0.1/dist/vuex.js"></script>
-<script src="https://unpkg.com/vuetify@1.1.14/dist/vuetify.min.js"></script>
+<!-- <script src="https://unpkg.com/vuetify@1.1.9/dist/vuetify.js"></script> -->
+<!-- <script src="https://unpkg.com/vuetify@1.1.14/dist/vuetify.js"></script> -->
+<script src="vuetify.js"></script>
 
 <script>
 if (window.location.hash == "#firebug") {
@@ -711,26 +733,27 @@ console.log("Starting app...")
 var app_vue = new Vue({
 	delimiters: ['${','}'],
 	el: '#app',
-	data: () => ({
-    	drawer: null,
-    	current_year: new Date().getFullYear(),
+	data: function() {
+		return {
+	    	drawer: null,
+	    	current_year: (new Date()).getFullYear(),
 
-    	screen: 'welcome',
-    	subscreen: '',
+	    	screen: 'welcome',
+	    	subscreen: '',
 
-    	recent_projects: [
-    		{display_name: "blue-widgets-inc"},
-    		{display_name: "monkey-hat-factory"},
-    		{display_name: "taco-emporium-employee-time-tracker"},
-    	],
+	    	recent_projects: [
+	    		{display_name: "blue-widgets-inc"},
+	    		{display_name: "monkey-hat-factory"},
+	    		{display_name: "taco-emporium-employee-time-tracker"},
+	    	],
 
-    	splitContentStyle: '',
-    	splitConsoleStyle: '',
+	    	splitContentStyle: '',
+	    	splitConsoleStyle: '',
 
-    	// temp
-    	// lorem: 'Lorem ipsum dolor sit amet, mel at clita quando. Te sit oratio vituperatoribus, nam ad ipsum posidonium mediocritatem, explicari dissentiunt cu mea. Repudiare disputationi vim in, mollis iriure nec cu, alienum argumentum ius ad. Pri eu justo aeque torquatos.',
-
-  	})
+	    	// temp
+	    	// lorem: 'Lorem ipsum dolor sit amet, mel at clita quando. Te sit oratio vituperatoribus, nam ad ipsum posidonium mediocritatem, explicari dissentiunt cu mea. Repudiare disputationi vim in, mollis iriure nec cu, alienum argumentum ius ad. Pri eu justo aeque torquatos.',
+	    };
+  	}
 });
 
 
@@ -741,8 +764,8 @@ var handleWindowResize = function() {
 	app_vue.splitContentStyle = 'height:'+parseInt(usableH/2)+'px';
 	app_vue.splitConsoleStyle = 'height:'+parseInt(usableH/2)+'px';
 }
-handleWindowResize();
-window.addEventListener('resize', handleWindowResize);
+// handleWindowResize();
+// window.addEventListener('resize', handleWindowResize);
 
 </script>
 
