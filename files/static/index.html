@@ -228,6 +228,7 @@
 		      				<v-btn color="primary">Run</v-btn>
 		      				<v-btn color="primary">Go Generate</v-btn>
 		      				<v-btn color="primary">Go Get</v-btn>
+		      				<v-btn color="primary">Open Console</v-btn>
 		      			</v-flex>
 		      		</v-layout>
 		      		<v-layout align-left>
@@ -247,7 +248,9 @@
 
 		      	<!-- NOTE: for auto scrolling: https://medium.com/@heatherbooker/how-to-auto-scroll-to-the-bottom-of-a-div-415e967e7a24 -->
 		      	<!-- NOTE: this really should be a component... -->
-		      	<div class="caverun-console" :style="splitConsoleStyle">Bacon ipsum dolor amet short ribs tail jerky t-bone, kielbasa turkey ham pastrami kevin bresaola ribeye pig flank ball tip. Doner pork loin meatball biltong spare ribs jerky kevin brisket capicola
+		      	<div class="caverun-console" :style="splitConsoleStyle">TODO: This console should be docked to the bottom of the overall app (across all screens) and just open up when needed, with some controls to fold it back down, clear the output, and stop the currently running program.
+
+Bacon ipsum dolor amet short ribs tail jerky t-bone, kielbasa turkey ham pastrami kevin bresaola ribeye pig flank ball tip. Doner pork loin meatball biltong spare ribs jerky kevin brisket capicola
 frankfurter flank ball tip pork chop leberkas jowl. Flank beef ribs turducken, doner ham hock frankfurter meatloaf pork swine andouille shoulder biltong. Alcatra ribeye drumstick short loin ham hock pancetta fatback short ribs ham frankfurter tail 
 beef ribs. Meatball pastrami t-bone prosciutto spare ribs pork belly turkey drumstick kielbasa short ribs meatloaf pork chop tail hamburger. Tongue swine boudin, 
 brisket chicken kevin hamburger cow tenderloin short ribs pork chop salami.
@@ -407,7 +410,7 @@ shoulder meatloaf capicola turducken flank corned beef. Flank filet mignon burgd
 
       <v-container fluid grid-list-md text-xs-center v-if="screen=='cavegen'">
 
-		<v-layout row wrap>
+		<v-layout row>
 		    <v-flex xs12 >
 
 		      <v-card>
@@ -595,21 +598,219 @@ shoulder meatloaf capicola turducken flank corned beef. Flank filet mignon burgd
       </v-container>
 
       <v-container fluid fill-height v-if="screen=='docker'">
+
+		  <v-layout row>
+		    <v-flex xs12>
+		      <v-card>
+		        <v-toolbar color="light-blue" dark>
+		          <!-- <v-toolbar-side-icon></v-toolbar-side-icon> -->
+
+		          <v-toolbar-title>Docker</v-toolbar-title>
+
+		          <v-spacer></v-spacer>
+
+<!-- 		          <v-btn icon>
+		            <v-icon>search</v-icon>
+		          </v-btn>
+ -->
+				    <v-text-field
+				      solo-inverted
+				      clearable
+				      prepend-icon="search"
+				    ></v-text-field>
+
+<!-- 		          <v-btn color="info">
+		          	Generate ✓ed
+		          </v-btn>
+ -->
+<!-- 					<v-tooltip bottom>
+		          		<v-btn icon
+		          			slot="activator"
+		          			>
+		            		<v-icon>input</v-icon>
+		          		</v-btn>
+						<span>Generate Selected Packages</span>
+					</v-tooltip>
+ -->
+					<!-- <v-tooltip bottom> -->
+			          	<v-btn icon>
+			            	<v-icon>refresh</v-icon>
+			          	</v-btn>
+						<!-- <span>Refresh Package list</span> -->
+					<!-- </v-tooltip> -->
+
+		        </v-toolbar>
+
+		        <!-- <v-card-title> -->
+		        	<v-alert type="error" :value="true">Docker is not currently running. Please use the appropriate docker tooling for your system to start it in order to use Docker functionality.</v-alert>
+		        <!-- </v-card-title> -->
+
+		        <v-list subheader>
+		          <v-subheader inset>Containers</v-subheader>
+
+		          <v-list-tile
+		            key="something"
+		            @click=""
+		          >
+		            <v-list-tile-avatar>
+						<v-checkbox
+							v-model="checkbox"
+						></v-checkbox>
+		            </v-list-tile-avatar>
+
+		            <v-list-tile-content>
+		            	<v-list-tile-title>sampleproj_samplemain_1</v-list-tile-title>
+		            	<v-list-tile-sub-title>Running, 3h45m10s</v-list-tile-sub-title>
+		            </v-list-tile-content>
+
+		            <v-list-tile-action>
+		              <v-btn icon>
+		              	<v-icon>stop</v-icon>
+		              </v-btn>
+		            </v-list-tile-action>
+		          </v-list-tile>
+
+		          <v-list-tile
+		            key="something"
+		            @click=""
+		          >
+		            <v-list-tile-avatar>
+						<v-checkbox
+							v-model="checkbox"
+						></v-checkbox>
+		            </v-list-tile-avatar>
+
+		            <v-list-tile-content>
+		            	<v-list-tile-title>sampleproj_mysql_1</v-list-tile-title>
+		            	<v-list-tile-sub-title>Running, 3h45m15s</v-list-tile-sub-title>
+		            </v-list-tile-content>
+
+		            <v-list-tile-action>
+		              <v-btn icon>
+		              	<v-icon>stop</v-icon>
+		              </v-btn>
+		            </v-list-tile-action>
+		          </v-list-tile>
+
+
+		        </v-list>
+		      </v-card>
+
+
+		    </v-flex>
+		  </v-layout>
+
+
+		  <!--
       	<div>docker screen</div>
       	<ul>
       		<li>shows basic docker status</li>
       		<li>status of containers related to project</li>
       		<li>controls to stop/start/restart containers (stop all also), and to run docker compose</li>
       	</ul>
+        -->
       </v-container>
 
       <v-container fluid fill-height v-if="screen=='git'">
+
+		<v-layout row>
+		    <v-flex xs12>
+		      <v-card>
+		        <v-toolbar color="light-blue" dark>
+		          <v-toolbar-title>Git Version Control</v-toolbar-title>
+		          <v-spacer></v-spacer>
+		          <v-btn icon><v-icon>search</v-icon></v-btn>
+		          <!-- <v-btn color="info">Pull</v-btn> -->
+		          <!-- <v-btn color="info">Commit & Push</v-btn> -->
+		          <v-btn icon><v-icon>refresh</v-icon></v-btn>
+		        </v-toolbar>
+
+		        <v-card-title>
+
+		        	<v-flex xs9>
+		        		<strong>Remote (origin):</strong> https://github.com/gocaveman/caverun<br/>
+		        		<strong>Branch:</strong> master
+		        	</v-flex>
+
+		        	<v-flex xs3>
+					    <v-menu offset-y>
+					      <v-btn
+					        slot="activator"
+					        color="primary"
+					        dark
+					      >
+					        Git Actions
+					      </v-btn>
+					      <v-list>
+					        <v-list-tile><v-list-tile-title>Commit</v-list-tile-title></v-list-tile>
+					        <v-list-tile><v-list-tile-title>Push</v-list-tile-title></v-list-tile>
+					        <v-list-tile><v-list-tile-title>Commit & Push</v-list-tile-title></v-list-tile>
+					        <v-list-tile><v-list-tile-title>Undo Changes</v-list-tile-title></v-list-tile>
+					      </v-list>
+					    </v-menu>
+		        	</v-flex>
+
+		        </v-card-title>
+
+		        <v-list subheader>
+		          <!-- <v-subheader inset>Modified Files</v-subheader> -->
+
+		          <v-list-tile>
+		            <v-list-tile-avatar>
+						<v-checkbox></v-checkbox>
+		            </v-list-tile-avatar>
+		            <v-list-tile-content>
+		            	<v-list-tile-title><strong>Modified Files</strong></v-list-tile-title>
+		            </v-list-tile-content>
+
+<!-- 		            <v-list-tile-action>
+		              <v-btn>Diff</v-btn>
+		            </v-list-tile-action>
+		            <v-list-tile-action>
+		              <v-btn>Undo</v-btn>
+		            </v-list-tile-action>
+ -->
+		          </v-list-tile>
+
+		          <v-divider></v-divider>
+
+		          <v-list-tile
+		            key="something"
+		            @click=""
+		          >
+
+		            <v-list-tile-avatar>
+						<v-checkbox
+							v-model="checkbox"
+						></v-checkbox>
+		            </v-list-tile-avatar>
+
+		            <v-list-tile-content>
+		            	<v-list-tile-title>path/of/a/package/here</v-list-tile-title>
+		            </v-list-tile-content>
+		            <v-list-tile-action>
+		              <v-btn>Diff</v-btn>
+		            </v-list-tile-action>
+		            <v-list-tile-action>
+		              <v-btn>Undo</v-btn>
+		            </v-list-tile-action>
+		          </v-list-tile>
+		        </v-list>
+
+		      </v-card>
+
+		    </v-flex>
+		  </v-layout>
+
+      	<!--
       	<div>git screen</div>
       	<ul>
       		<li>git status, auto refreshes? basically show current branch and what's changed</li>
       		<li>need a way to link to remote (github, etc.)</li>
       		<li>common operations: show diff (in console? or maybe just modal, if it had colors that'd be cool) commit everything with message, undo all edits, push, pull; make sure it doesn't clobber stuff if it's in a funky state</li>
       	</ul>
+		-->
+
       </v-container>
 
       <v-container fluid fill-height v-if="screen=='settings'">
