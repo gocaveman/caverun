@@ -137,6 +137,24 @@
 
 			</v-flex>
 
+			<v-flex xs12 text-xs-left>
+	        	<v-alert type="warning" :value="true" dismissible>
+	        		<h3>External Tools Required</h3>
+	        			<v-layout row>
+		        			<v-flex xs7>
+				        		Some external tools are needed for full functionality.  We recommend you take a moment and review and install the appropriate tools.
+				        		(Or if you want to review it later, no problem, click on
+				        		the Caverun Settings icon at the top right and choose
+				        		External Tools.)
+		        			</v-flex>
+		        			<v-flex xs5 text-xs-right>
+			        			<v-btn color="primary" @click="screen='caverun_config';caverun_config_current_tab=1">Review & Install Tools</v-btn>
+		        			</v-flex>
+	        			</v-layout>
+	        	</v-alert>
+			</v-flex>
+
+
 			<v-flex xs4>
 				<v-card dark color="primary">
 					<v-card-text>
@@ -218,11 +236,35 @@
 
 		      	<div class="caverun-content" :style="splitContentStyle">
 		      		
-		      		<h1>Build & Run</h1>
+			        <v-toolbar color="light-blue" dark>
+			          <v-toolbar-title>Build &amp; Run</v-toolbar-title>
+			        </v-toolbar>
 
-		      		<hr/>
+			        <v-toolbar>
+			          <v-toolbar-items>
+		      				<v-btn flat >Build</v-btn>
+		      				<v-btn flat >Run</v-btn>
+		      				<v-btn flat >Go Generate</v-btn>
+		      				<v-btn flat >Go Get</v-btn>
+		      				<v-btn flat >Open Console</v-btn>
+			          </v-toolbar-items>
+			        </v-toolbar>
 
-		      		<v-layout align-left>
+			        <v-toolbar>
+			          <v-toolbar-items>
+		      				<v-btn flat color="info">Build & Run</v-btn>
+		      				<v-btn flat >Generate, Build & Run</v-btn>
+			          </v-toolbar-items>
+			        </v-toolbar>
+
+			        <v-toolbar>
+			          <v-toolbar-items>
+		      				<v-btn flat color="success">Custom Action 1</v-btn>
+		      				<v-btn flat color="success">Custom Action 2</v-btn>
+			          </v-toolbar-items>
+			        </v-toolbar>
+
+<!-- 		      		<v-layout align-left>
     					<v-flex xs12 >
 		      				<v-btn color="primary">Build</v-btn>
 		      				<v-btn color="primary">Run</v-btn>
@@ -242,7 +284,7 @@
 		      				<v-btn color="success">Custom Action 1</v-btn>
 		      				<v-btn color="success">Custom Action 2</v-btn>
 		      			</v-flex>
-		      		</v-layout>
+		      		</v-layout> -->
 
 		      	</div>
 
@@ -458,6 +500,15 @@ shoulder meatloaf capicola turducken flank corned beef. Flank filet mignon burgd
 					<v-card-text>
 			        	<v-icon x-large>create_new_folder</v-icon>
 			        	<div>Store</div>
+					</v-card-text>
+				</v-card>
+			</v-flex>
+
+			<v-flex xs4>
+				<v-card dark color="primary">
+					<v-card-text>
+			        	<v-icon x-large>create_new_folder</v-icon>
+			        	<div>Embedded Content</div>
 					</v-card-text>
 				</v-card>
 			</v-flex>
@@ -814,6 +865,61 @@ shoulder meatloaf capicola turducken flank corned beef. Flank filet mignon burgd
       </v-container>
 
       <v-container fluid fill-height v-if="screen=='settings'">
+
+		<v-layout row>
+		    <v-flex xs12>
+		      <v-card>
+		        <v-toolbar color="light-blue" dark>
+		          <v-toolbar-title>Project Settings</v-toolbar-title>
+		          <v-spacer></v-spacer>
+		          <v-btn icon><v-icon>search</v-icon></v-btn>
+		          <!-- <v-btn color="info">Pull</v-btn> -->
+		          <!-- <v-btn color="info">Commit & Push</v-btn> -->
+		          <v-btn icon><v-icon>refresh</v-icon></v-btn>
+		        </v-toolbar>
+
+		        <v-card-title>
+
+		        	<v-flex xs8>
+		        		Adjust settings for this project.  Leaving default values
+		        		where possible and otherwise using relative paths (relative to
+		        		project file) is recommended.
+		        	</v-flex>
+		        	<v-flex xs4 text-xs-right>
+		          		<v-btn color="primary">Save</v-btn>
+		          		<v-btn >Close</v-btn>
+		        	</v-flex>
+
+		        </v-card-title>
+
+				<v-card-text>
+
+				  <v-form>
+				    <v-text-field box label="Project File" disabled 
+				    	value="/path/to/project/src/github.com/blah/blee/project.yaml"></v-text-field>
+				    <v-text-field box label="Project Package Directory" 
+				    	value="."></v-text-field>
+				    <v-text-field box label="GOPATH" 
+				    	value="../../../../"></v-text-field>
+				    <v-text-field box label="Run From Dir" 
+				    	value="../../../../"></v-text-field>
+				    <v-text-field box label="Main Package (name or path)" value="."></v-text-field>
+				    <v-select box label="Execution Mode" :items="execution_mode_options"></v-select>
+				    <v-textarea box label="Go Install Additional Packages" value="some/other/package" hint="Useful for other programs that use the installed output, such as the GoSublime plugin for Sublime autocompletion." ></v-textarea>
+				    <v-textarea box label="Custom Build Actions" hint="TODO: figure this out more - Custom build commands to just make into buttons on the build screen (option to say which platform(s) each button shows on - so you can have a windows custom thing and a linux/mac custom thing?)"  ></v-textarea>
+				    <v-text-field box label="Build Tags"></v-text-field>
+				    <v-text-field box label="Run Command Line"></v-text-field>
+				    <v-text-field box label="Launch Browser to URL"></v-text-field>
+				  </v-form>
+
+				</v-card-text>
+
+		      </v-card>
+			</v-flex>
+		</v-layout>
+
+
+		<!--
       	<div>project settings screen</div>
 
       	<ul>
@@ -830,10 +936,128 @@ shoulder meatloaf capicola turducken flank corned beef. Flank filet mignon burgd
       		<li>Browse to this URL if it builds & runs correctly</li>
       		<li>Button to close the project (remove it from drop down)</li>
       	</ul>
+      	-->
 
       </v-container>
 
       <v-container fluid fill-height v-if="screen=='caverun_config'">
+
+		<v-layout row>
+		    <v-flex xs12>
+
+		    	<v-tabs dark color="light-blue" v-model="caverun_config_current_tab">
+		    		
+		    		<v-tab key="0">Caverun Settings</v-tab>
+		    		<v-tab key="1">External Tools</v-tab>
+
+		    		<v-tab-item key="0">
+		    			<v-card flat>
+
+					        <v-card-title>
+
+					        	<v-flex xs8>
+					        		Adjust overall Caverun settings
+					        	</v-flex>
+					        	<v-flex xs4 text-xs-right>
+					          		<v-btn color="primary">Save</v-btn>
+					          		<!-- <v-btn >Revert</v-btn> -->
+					        	</v-flex>
+
+					        </v-card-title>
+
+		    				<v-card-text>
+
+							  <v-form>
+							    <v-text-field box label="Go Executable Path" value="" hint="Defaults to /usr/local/go/bin/go or C:/Go/bin/go on Windows"></v-text-field>
+							    <v-text-field box label="Caverun Log" value="" hint="Defaults to ~/.caverun/caverun.log"></v-text-field>
+							    <v-text-field box label="Max Size Before Rotate (megabytes)" value="100"></v-text-field>
+							    <v-text-field box label="Keep Rotated Log Files" value="3"></v-text-field>
+							  </v-form>
+
+		    				</v-card-text>
+		    			</v-card>
+		    		</v-tab-item>
+		    		<v-tab-item key="1">
+		    			<v-card flat>
+		    				<v-card-text>
+		    
+		    					<div>To ensure things work properly, apply the recommended changes
+		    					below.  Some packages are critical for basic operation (like Go), others are optional and only needed if you use the feature in question (like Docker).
+		    					<br/>&nbsp;
+		    					</div>
+
+					        	<v-alert type="warning" :value="true">
+					        		<h3>Go Version 1.9</h3>
+					        			<v-layout row>
+						        			<v-flex xs8>
+								        		Go is installed on your system but is not the latest version.  Upgrading is recommended.
+						        			</v-flex>
+						        			<v-flex xs4 text-xs-right>
+							        			<v-btn color="primary">Download Go</v-btn>
+						        			</v-flex>
+					        			</v-layout>
+					        	</v-alert>
+
+					        	<v-alert type="success" :value="true">
+					        		<h3>Git Version 2.14.3</h3>
+					        			<v-layout row>
+						        			<v-flex xs8>
+								        		Git is installed and is a recent version.  No action required.
+						        			</v-flex>
+						        			<v-flex xs4 text-xs-right>
+							        			<v-btn flat icon><v-icon>get_app</v-icon></v-btn>
+						        			</v-flex>
+					        			</v-layout>
+					        	</v-alert>
+
+					        	<v-alert type="error" :value="true">
+					        		<h3>No GCC Found</h3>
+					        			<v-layout row>
+						        			<v-flex xs8>
+								        		GCC is required for CGO to be able to compile C/C++.  This is needed for libraries like SQLite which are written in C and called from Go code.
+						        			</v-flex>
+						        			<v-flex xs4 text-xs-right>
+							        			<v-btn color="primary">Download TDM64-GCC</v-btn>
+						        			</v-flex>
+					        			</v-layout>
+					        	</v-alert>
+
+					        	<v-alert type="error" :value="true">
+					        		<h3>Docker Not Installed</h3>
+					        			<v-layout row>
+						        			<v-flex xs8>
+								        		Docker is required if you wish to run your application in a container.  This is recommended for applications that need an external database like MySQL or require other applications in order to work properly.
+						        			</v-flex>
+						        			<v-flex xs4 text-xs-right>
+							        			<v-btn color="primary">Download Docker</v-btn>
+						        			</v-flex>
+					        			</v-layout>
+					        	</v-alert>
+
+					        	<v-alert type="warning" :value="true">
+					        		<h3>Go Utilities</h3>
+					        			<v-layout row>
+						        			<v-flex xs8>
+								        		Some utilities like goimports, stringer, and go-bindata are useful when using go generate.
+						        			</v-flex>
+						        			<v-flex xs4 text-xs-right>
+							        			<v-btn color="primary">Install Utilities</v-btn>
+						        			</v-flex>
+					        			</v-layout>
+					        	</v-alert>
+
+
+		    				</v-card-text>
+		    			</v-card>
+		    		</v-tab-item>
+
+		    	</v-tabs>
+
+		    </v-flex>
+		</v-layout>
+
+
+      	<!--
       	<div>overall caverun configuration screen</div>
 
       	<ul>
@@ -845,6 +1069,7 @@ shoulder meatloaf capicola turducken flank corned beef. Flank filet mignon burgd
       		<li>Should offer to update old versions of things - especially Go</li>
       		<li>application log file with rotation options</li>
       	</ul>
+      	-->
 
       </v-container>
 
@@ -927,6 +1152,10 @@ var app_vue = new Vue({
 
     	splitContentStyle: '',
     	splitConsoleStyle: '',
+
+    	caverun_config_current_tab: '1',
+
+    	execution_mode_options: ['exec','docker-compose'],
 
     	// temp
     	// lorem: 'Lorem ipsum dolor sit amet, mel at clita quando. Te sit oratio vituperatoribus, nam ad ipsum posidonium mediocritatem, explicari dissentiunt cu mea. Repudiare disputationi vim in, mollis iriure nec cu, alienum argumentum ius ad. Pri eu justo aeque torquatos.',
