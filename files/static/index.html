@@ -173,7 +173,7 @@
 				</v-card>
 			</v-flex>
 
-			<v-flex xs4>
+			<v-flex xs4 @click="screen='new_project';subscreen=''">
 				<v-card dark color="primary">
 					<v-card-text>
 			        	<v-icon x-large>create_new_folder</v-icon>
@@ -1073,12 +1073,118 @@ shoulder meatloaf capicola turducken flank corned beef. Flank filet mignon burgd
 
       </v-container>
 
-      <v-container fluid fill-height v-if="screen=='new_project'">
-      	<div>new project, empty or from template, each template can have some options (corresponding to the cavegen command)</div>
+      <v-container fluid grid-list-md v-if="screen=='new_project'">
+
+		<v-layout row>
+		    <v-flex xs12 >
+
+		      <v-card>
+
+			      <v-toolbar color="light-blue" dark>
+			          <v-toolbar-title>New Project</v-toolbar-title>
+			      </v-toolbar>
+
+			  </v-card>
+
+			</v-flex>
+		</v-layout>
+
+		<v-layout row wrap v-if="subscreen==''">
+
+			<v-flex xs4 @click="subscreen='new_rest_server'">
+				<v-card dark color="primary">
+					<v-card-text>
+			        	<v-icon x-large>folder_open</v-icon>
+			        	<div>REST Server (SQLite)</div>
+					</v-card-text>
+				</v-card>
+			</v-flex>
+
+			<v-flex xs4 >
+				<v-card dark color="primary">
+					<v-card-text>
+			        	<v-icon x-large>folder_open</v-icon>
+			        	<div>REST Server (MySQL)</div>
+					</v-card-text>
+				</v-card>
+			</v-flex>
+
+			<v-flex xs4>
+				<v-card dark color="primary">
+					<v-card-text>
+			        	<v-icon x-large>cloud</v-icon>
+			        	<div>Dynamic Views App</div>
+					</v-card-text>
+				</v-card>
+			</v-flex>
+
+			<v-flex xs4>
+				<v-card dark color="primary">
+					<v-card-text>
+			        	<v-icon x-large>create_new_folder</v-icon>
+			        	<div>File-based CMS</div>
+					</v-card-text>
+				</v-card>
+			</v-flex>
+
+			<v-flex xs4>
+				<v-card dark color="primary">
+					<v-card-text>
+			        	<v-icon x-large>create_new_folder</v-icon>
+			        	<div>DB-driven CMS (SQLite)</div>
+					</v-card-text>
+				</v-card>
+			</v-flex>
+
+			<v-flex xs4>
+				<v-card dark color="primary">
+					<v-card-text>
+			        	<v-icon x-large>create_new_folder</v-icon>
+			        	<div>DB-driven CMS (MySQL)</div>
+					</v-card-text>
+				</v-card>
+			</v-flex>
+
+		</v-layout>
+
+
+		<v-layout row wrap text-xs-left v-if="subscreen=='new_rest_server'">
+
+			<v-flex xs12 >
+
+				<h3>REST Server</h3>
+
+			  <v-form ref="form" v-model="valid" lazy-validation>
+			    <v-text-field
+			      v-model="filename"
+			      label="File Name"
+			      required
+			      hint="TODO: need file browser - probably needs to be modal dialog"
+			    ></v-text-field>
+
+			    <v-btn
+			      color="primary"
+			      @click="submit"
+			    >
+			      CREATE
+			    </v-btn>
+			    <v-btn @click="clear">CLEAR</v-btn>
+			  </v-form>
+
+			</v-flex>
+
+		</v-layout>
+
+      	<!-- <div>new project, empty or from template, each template can have some options (corresponding to the cavegen command)</div> -->
+
       </v-container>
 
       <v-container fluid fill-height v-if="screen=='file_browser'">
-      	<div>file browser for opening/saving, etc</div>
+      	<div>file browser for opening/saving, etc
+      	Hm, this probably needs to be a modal dialog, so we can call it from various
+      	screens without interrupting the workflow - also look at what it takes to
+        do an OS file dialog, would be cleaner in some ways, but also require more CGO mess...
+    	so check it out and see what the tradeoffs are</div>
       </v-container>
 <!--    
       <v-container fluid fill-height>
