@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path"
 	"runtime"
+	"time"
 
 	"github.com/gocaveman/caverun/files"
 
@@ -16,6 +17,7 @@ import (
 
 func main() {
 
+	headless := flag.Bool("headless", false, "Don't launch webview, just listen")
 	debug := flag.Bool("debug", false, "Enable browser debugging")
 	flag.Parse()
 
@@ -40,13 +42,20 @@ func main() {
 	}()
 
 	mainURL := fmt.Sprintf("http://127.0.0.1:%s/index.html", port)
-	if *debug {
+	if *debug || *headless {
 		log.Printf("Main URL: %s", mainURL)
 	}
 	if *debug {
 		// https://github.com/zserge/webview#debugging-and-development-tips
 		if runtime.GOOS == "windows" {
 			mainURL += "#firebug" // TODO: can we use WebView.Bind() to expose settings instead?
+		}
+	}
+
+	// endless loop until Ctrl+C if headless
+	if *headless {
+		for {
+			time.Sleep(time.Second)
 		}
 	}
 
