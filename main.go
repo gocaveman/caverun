@@ -18,10 +18,16 @@ import (
 func main() {
 
 	headless := flag.Bool("headless", false, "Don't launch webview, just listen")
+	portSpec := flag.String("port", "", "Port to listen on for HTTP (default is random)")
 	debug := flag.Bool("debug", false, "Enable browser debugging")
 	flag.Parse()
 
-	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	pspec := *portSpec
+	if pspec == "" {
+		pspec = "0"
+	}
+
+	ln, err := net.Listen("tcp", "127.0.0.1:"+pspec)
 	if err != nil {
 		log.Fatal(err)
 	}
