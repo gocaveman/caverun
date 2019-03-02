@@ -9,12 +9,28 @@ import (
 	"path"
 	"runtime"
 	"time"
-
+	"encoding/json"
+	
 	"github.com/gocaveman/caverun/files"
-
+	
 	"github.com/zserge/webview"
 )
 
+type project struct{
+	Name	string `json:"Name"`
+	Directory string `json:"Directory"`
+}
+
+func projectHandler(w http.ResponseWriter, r *http.Request) {
+	var proj project
+	proj.Name = "Test"
+	proj.Directory = "TestDir"
+
+	j, _ := json.Marshal(proj)
+	w.Header().Set("Content-Type","Application/Json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
+}
 func main() {
 
 	headless := flag.Bool("headless", false, "Don't launch webview, just listen")
@@ -47,7 +63,8 @@ func main() {
 		}
 	}()
 
-	mainURL := fmt.Sprintf("http://127.0.0.1:%s/index.html", port)
+	mainURL := fmt.Sprintf("http://127.0.0.1:%s/", port)
+	// mainURL := fmt.Sprintf("http://127.0.0.1:%s/index.html", port)
 	if *debug || *headless {
 		log.Printf("Main URL: %s", mainURL)
 	}
@@ -112,7 +129,9 @@ func (ws *MainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+	if r.URL.Path == "/project" {
+		projectHandler(w,r)
+	}
 
 	http.ServeContent(w, r, path.Base(fpath), fst.ModTime(), f)
-
 }
