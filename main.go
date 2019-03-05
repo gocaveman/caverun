@@ -9,29 +9,18 @@ import (
 	"path"
 	"runtime"
 	"time"
-	"encoding/json"
+	//"encoding/json"
+	"strings"
 	
 	"github.com/gocaveman/caverun/files"
 	
 	"github.com/zserge/webview"
 )
+var str *store
 
-type project struct{
-	Name	string `json:"Name"`
-	Directory string `json:"Directory"`
-}
-
-func projectHandler(w http.ResponseWriter, r *http.Request) {
-	var proj project
-	proj.Name = "Test"
-	proj.Directory = "TestDir"
-
-	j, _ := json.Marshal(proj)
-	w.Header().Set("Content-Type","Application/Json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(j)
-}
 func main() {
+	str = new(store)
+	str.init()
 
 	headless := flag.Bool("headless", false, "Don't launch webview, just listen")
 	portSpec := flag.String("port", "", "Port to listen on for HTTP (default is random)")
@@ -63,8 +52,7 @@ func main() {
 		}
 	}()
 
-	mainURL := fmt.Sprintf("http://127.0.0.1:%s/", port)
-	// mainURL := fmt.Sprintf("http://127.0.0.1:%s/index.html", port)
+	mainURL := fmt.Sprintf("http://127.0.0.1:%s/index.html", port)
 	if *debug || *headless {
 		log.Printf("Main URL: %s", mainURL)
 	}
@@ -99,7 +87,7 @@ func main() {
 type MainHandler struct{}
 
 func (ws *MainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
+	
 	// TODO: looks like all the browsers in question support websockets,
 	// which is probably going to be the simplest way to message back
 	// and forth between Go and the UI, rather than messing around
@@ -107,12 +95,18 @@ func (ws *MainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// doing the webview.Bind() approach and hoping it handles complex
 	// data without issues (and still doesn't provide a way to
 	// push to the browser).
-
+	
 	// TODO: we'll also need to secure the endpoint somehow, probably would
 	// work to generate a random key and Bind() that and require it
 	// in each request as a security precaution.  Doesn't prevent sniffing
 	// but that's probably fine, still prevents unwanted apps from having
 	// direct access.
+	
+	if  strings.Contains(r.URL.Path, "api/project") {
+		var p Project
+		p.projectHandler(w,r)
+		return
+	}
 
 	fpath := path.Join("/static", path.Clean("/"+r.URL.Path))
 
@@ -128,9 +122,6 @@ func (ws *MainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Print(err)
 		http.Error(w, err.Error(), 500)
 		return
-	}
-	if r.URL.Path == "/project" {
-		projectHandler(w,r)
 	}
 
 	http.ServeContent(w, r, path.Base(fpath), fst.ModTime(), f)
