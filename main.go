@@ -10,12 +10,14 @@ import (
 	"runtime"
 	"time"
 	//"encoding/json"
-	"strings"
-	
+	//"strings"
+	webutil "github.com/gocaveman/caveman/webutil"
+
 	"github.com/gocaveman/caverun/files"
-	
+
 	"github.com/zserge/webview"
 )
+
 var str *store
 
 func main() {
@@ -87,7 +89,7 @@ func main() {
 type MainHandler struct{}
 
 func (ws *MainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	
+
 	// TODO: looks like all the browsers in question support websockets,
 	// which is probably going to be the simplest way to message back
 	// and forth between Go and the UI, rather than messing around
@@ -95,16 +97,43 @@ func (ws *MainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// doing the webview.Bind() approach and hoping it handles complex
 	// data without issues (and still doesn't provide a way to
 	// push to the browser).
-	
+
 	// TODO: we'll also need to secure the endpoint somehow, probably would
 	// work to generate a random key and Bind() that and require it
 	// in each request as a security precaution.  Doesn't prevent sniffing
 	// but that's probably fine, still prevents unwanted apps from having
 	// direct access.
-	
-	if  strings.Contains(r.URL.Path, "api/project") {
-		var p Project
-		p.projectHandler(w,r)
+
+	// if  strings.Contains(r.URL.Path, "api/project") {
+	// 	var p Project
+	// 	p.projectHandler(w,r)
+	// 	return
+	// }
+
+	if webutil.PathParse(r.URL.Path, "/api/project/") == nil {
+		if r.Method == "POST" {
+			createProjectHandler(w, r)
+		}
+		return
+	}
+
+	if webutil.PathParse(r.URL.Path, "/api/project/list") == nil {
+		if r.Method == "GET" {
+			ListProjectsHandler(w, r)
+		}
+		return
+	}
+
+	var id string
+	if webutil.PathParse(r.URL.Path, "/api/project/%s", &id) == nil {
+		switch r.Method {
+		case "GET":
+			getProjectHandler(w, r, id)
+		case "PUT":
+			putProjectHandler(w, r, id)
+		case "DELETE":
+			deleteProjectHandler(w, r, id)
+		}
 		return
 	}
 
