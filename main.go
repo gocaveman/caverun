@@ -10,9 +10,7 @@ import (
 	"runtime"
 	"time"
 	//"encoding/json"
-	//"strings"
 	webutil "github.com/gocaveman/caveman/webutil"
-
 	"github.com/gocaveman/caverun/files"
 
 	"github.com/zserge/webview"
@@ -112,7 +110,7 @@ func (ws *MainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if webutil.PathParse(r.URL.Path, "/api/project/") == nil {
 		if r.Method == "POST" {
-			createProjectHandler(w, r)
+			postProjectHandler(w, r)
 		}
 		return
 	}
