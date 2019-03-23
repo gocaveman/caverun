@@ -2,18 +2,57 @@ package main
 
 import (
 	"encoding/json"
-	"net/http"
-	// "strings"
-	// "io"
 	"fmt"
+	webutil "github.com/gocaveman/caveman/webutil"
+	"net/http"
 )
 
-func postProjectHandler(w http.ResponseWriter, r *http.Request) {
+type ProjectHandler struct {
+	store *store
+}
+
+func (p *ProjectHandler) newStore() {
+	p.store = new(store)
+	p.store.init()
+}
+
+func (p *ProjectHandler) ProjectMainHandler(w http.ResponseWriter, r *http.Request) {
+	if webutil.PathParse(r.URL.Path, "/api/project/") == nil {
+		if r.Method == "POST" {
+			//fmt.Println("in ProjectMainHandler")
+			p.postProjectHandler(w, r)
+		}
+		return
+	}
+
+	if webutil.PathParse(r.URL.Path, "/api/project/list") == nil {
+		if r.Method == "GET" {
+			p.ListProjectsHandler(w, r)
+		}
+		return
+	}
+
+	var id string
+	if webutil.PathParse(r.URL.Path, "/api/project/%s", &id) == nil {
+		switch r.Method {
+		case "GET":
+			p.getProjectHandler(w, r, id)
+		case "PUT":
+			p.putProjectHandler(w, r, id)
+		case "DELETE":
+			p.deleteProjectHandler(w, r, id)
+		}
+		return
+	}
+}
+
+func (p *ProjectHandler) postProjectHandler(w http.ResponseWriter, r *http.Request) {
 	type projectID struct {
 		ID string `json:"ID"`
 	}
 	var pID projectID
-	ID, ok := str.postProject()
+	//fmt.Println("in postProjectHandler")
+	ID, ok := p.store.postProject()
 	if ok {
 		pID.ID = ID
 	} else {
@@ -30,10 +69,10 @@ func postProjectHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(j)
 }
 
-func ListProjectsHandler(w http.ResponseWriter, r *http.Request) {
-	p, ok := str.getProjects()
+func (p *ProjectHandler) ListProjectsHandler(w http.ResponseWriter, r *http.Request) {
+	prj, ok := p.store.getProjects()
 
-	j, _ := json.Marshal(p)
+	j, _ := json.Marshal(prj)
 	w.Header().Set("Content-Type", "Application/Json")
 	if ok {
 		w.WriteHeader(http.StatusOK)
@@ -43,8 +82,8 @@ func ListProjectsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(j)
 }
 
-func getProjectHandler(w http.ResponseWriter, r *http.Request, id string) {
-	proj, ok := str.getProject(id)
+func (p *ProjectHandler) getProjectHandler(w http.ResponseWriter, r *http.Request, id string) {
+	proj, ok := p.store.getProject(id)
 	j, _ := json.Marshal(proj)
 	w.Header().Set("Content-Type", "Application/Json")
 	if ok {
@@ -55,11 +94,11 @@ func getProjectHandler(w http.ResponseWriter, r *http.Request, id string) {
 	w.Write(j)
 }
 
-func putProjectHandler(w http.ResponseWriter, r *http.Request, id string) {
+func (p *ProjectHandler) putProjectHandler(w http.ResponseWriter, r *http.Request, id string) {
 	fmt.Println("in putProjectHandler", id)
 }
 
-func deleteProjectHandler(w http.ResponseWriter, r *http.Request, id string) {
+func (p *ProjectHandler) deleteProjectHandler(w http.ResponseWriter, r *http.Request, id string) {
 
 	type projectID struct {
 		ID     string `json:"ID"`
@@ -67,7 +106,7 @@ func deleteProjectHandler(w http.ResponseWriter, r *http.Request, id string) {
 	}
 	var pID projectID
 
-	ok := str.deleteProject(id)
+	ok := p.store.deleteProject(id)
 	pID.ID = id
 	if ok {
 		pID.Status = "Succeeded"

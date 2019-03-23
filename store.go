@@ -30,7 +30,7 @@ func (s *store) init() {
 		ID := gouuid.NewB64().String()
 		prj.Name = "Name for: " + ID
 		prj.Directory = "Directory for: " + ID
-		str.Projects[ID] = prj
+		s.Projects[ID] = prj
 	}
 
 }
@@ -52,15 +52,15 @@ func (s *store) postProject() (ID string, ok bool) {
 	ID = gouuid.NewB64().String()
 	prj.Name = "Name for: " + ID
 	prj.Directory = "Directory for: " + ID
-	str.Projects[ID] = prj
-	_, ok = str.Projects[ID]
+	s.Projects[ID] = prj
+	_, ok = s.Projects[ID]
 	return ID, ok
 }
 
 // Deletes an open projects from memory
 func (s *store) deleteProject(ID string) (ok bool) {
-	delete(str.Projects, ID)
-	_, ok = str.Projects[ID]
+	delete(s.Projects, ID)
+	_, ok = s.Projects[ID]
 	ok = !ok
 
 	return ok

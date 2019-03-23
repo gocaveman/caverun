@@ -8,19 +8,19 @@ import (
 	"net/http"
 	"path"
 	"runtime"
+	"strings"
 	"time"
 	//"encoding/json"
-	webutil "github.com/gocaveman/caveman/webutil"
 	"github.com/gocaveman/caverun/files"
 
 	"github.com/zserge/webview"
 )
 
-var str *store
+var ph *ProjectHandler
 
 func main() {
-	str = new(store)
-	str.init()
+	ph = new(ProjectHandler)
+	ph.newStore()
 
 	headless := flag.Bool("headless", false, "Don't launch webview, just listen")
 	portSpec := flag.String("port", "", "Port to listen on for HTTP (default is random)")
@@ -102,36 +102,8 @@ func (ws *MainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// but that's probably fine, still prevents unwanted apps from having
 	// direct access.
 
-	// if  strings.Contains(r.URL.Path, "api/project") {
-	// 	var p Project
-	// 	p.projectHandler(w,r)
-	// 	return
-	// }
-
-	if webutil.PathParse(r.URL.Path, "/api/project/") == nil {
-		if r.Method == "POST" {
-			postProjectHandler(w, r)
-		}
-		return
-	}
-
-	if webutil.PathParse(r.URL.Path, "/api/project/list") == nil {
-		if r.Method == "GET" {
-			ListProjectsHandler(w, r)
-		}
-		return
-	}
-
-	var id string
-	if webutil.PathParse(r.URL.Path, "/api/project/%s", &id) == nil {
-		switch r.Method {
-		case "GET":
-			getProjectHandler(w, r, id)
-		case "PUT":
-			putProjectHandler(w, r, id)
-		case "DELETE":
-			deleteProjectHandler(w, r, id)
-		}
+	if strings.Contains(r.URL.Path, "/api/project") {
+		ph.ProjectMainHandler(w, r)
 		return
 	}
 
