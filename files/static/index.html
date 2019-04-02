@@ -101,14 +101,21 @@
 
 	  <v-spacer></v-spacer>
 
+	</template>
+					<v-btn color="success" @click="save_project">Save</v-btn>
+					<v-btn color="error" @click="delete_project">Delete</v-btn>
+
 	      	<v-btn icon @click="screen='welcome'">
 	      		<v-icon>add_box</v-icon>
 	      	</v-btn>
 
 	    	<v-btn flat>
 				<v-select
-		          :items="items"
-		          label="Project"
+		          :items="projects"
+							label="Project"	
+							item-text="name"
+							item-value="ID"
+							v-model="curr_project.ID"
 		        ></v-select>
 	    	</v-btn>
 
@@ -1164,7 +1171,7 @@ shoulder meatloaf capicola turducken flank corned beef. Flank filet mignon burgd
 
 			    <v-btn
 			      color="primary"
-			      @click="submit"
+			      @click="create_project"
 			    >
 			      CREATE
 			    </v-btn>
@@ -1265,8 +1272,67 @@ var app_vue = new Vue({
 
     	// temp
     	// lorem: 'Lorem ipsum dolor sit amet, mel at clita quando. Te sit oratio vituperatoribus, nam ad ipsum posidonium mediocritatem, explicari dissentiunt cu mea. Repudiare disputationi vim in, mollis iriure nec cu, alienum argumentum ius ad. Pri eu justo aeque torquatos.',
+			filename: '',
+			curr_project: [{
+						ID: '',
+						name: '',
+						directory: ''}],
+			projects: [],
 
-  	})
+  	}),
+	methods: {
+		create_project: function () {
+      let self = this
+			let request_opt = {method: 'POST'};
+			let url = 'api/project/' + this.filename
+      const myRequest = new Request(url, request_opt)
+			fetch(myRequest)
+        .then((response) => { return response.json() })
+        .then((data) => {
+          this.projects = data
+	        console.log(self.items)
+        }).catch( error => { console.log(error); });  
+			
+		},
+		get_project_list: function () {
+      let self = this
+			let request_opt = {method: 'GET'};
+      const myRequest = new Request('/api/project/list', request_opt)
+      fetch(myRequest)
+        .then((response) => { return response.json() })
+        .then((data) => {
+          this.projects = data
+	        console.log(self.items)
+        }).catch( error => { console.log(error); });    
+		},
+		save_project: function() {
+			var prjName
+			for (var i = 0; i < this.projects.length; i++) {
+				if (this.projects[i].ID === this.curr_project.ID) {
+						prjName = this.projects[i].name
+						break
+				}
+			}	
+			alert("saving Project " + prjName)
+
+		},
+		delete_project: function() {
+			if (this.curr_project.ID == null) {
+				alert("Nothing to delete.  Please select a project first")
+				return
+			}
+			let self = this
+			let url = '/api/project/' + this.curr_project.ID
+			let request_opt = {method: 'DELETE'};
+      const myRequest = new Request(url, request_opt)
+      fetch(myRequest)
+        .then((response) => { return response.json() })
+        .then((data) => {
+          this.projects = data
+	        console.log(self.items)
+        }).catch( error => { console.log(error); }); 
+		}
+	}
 });
 
 
@@ -1282,5 +1348,6 @@ window.addEventListener('resize', handleWindowResize);
 
 </script>
 
+
 </body>
-</html>
+</html>`

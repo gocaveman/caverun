@@ -18,9 +18,16 @@ import (
 
 var ph *ProjectHandler
 
+func NewStore() *store {
+	str := new(store)
+	str.init()
+	return str
+}
+
 func main() {
+	store := NewStore()
 	ph = new(ProjectHandler)
-	ph.newStore()
+	ph.store = store
 
 	headless := flag.Bool("headless", false, "Don't launch webview, just listen")
 	portSpec := flag.String("port", "", "Port to listen on for HTTP (default is random)")

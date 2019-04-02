@@ -11,16 +11,11 @@ type ProjectHandler struct {
 	store *store
 }
 
-func (p *ProjectHandler) newStore() {
-	p.store = new(store)
-	p.store.init()
-}
-
 func (p *ProjectHandler) ProjectMainHandler(w http.ResponseWriter, r *http.Request) {
 	if webutil.PathParse(r.URL.Path, "/api/project/") == nil {
 		if r.Method == "POST" {
 			//fmt.Println("in ProjectMainHandler")
-			p.postProjectHandler(w, r)
+			p.postProjectHandler(w, r, "")
 		}
 		return
 	}
@@ -35,6 +30,8 @@ func (p *ProjectHandler) ProjectMainHandler(w http.ResponseWriter, r *http.Reque
 	var id string
 	if webutil.PathParse(r.URL.Path, "/api/project/%s", &id) == nil {
 		switch r.Method {
+		case "POST":
+			p.postProjectHandler(w, r, id)
 		case "GET":
 			p.getProjectHandler(w, r, id)
 		case "PUT":
@@ -46,20 +43,10 @@ func (p *ProjectHandler) ProjectMainHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func (p *ProjectHandler) postProjectHandler(w http.ResponseWriter, r *http.Request) {
-	type projectID struct {
-		ID string `json:"ID"`
-	}
-	var pID projectID
-	//fmt.Println("in postProjectHandler")
-	ID, ok := p.store.postProject()
-	if ok {
-		pID.ID = ID
-	} else {
-		pID.ID = ""
-	}
+func (p *ProjectHandler) postProjectHandler(w http.ResponseWriter, r *http.Request, name string) {
+	prj, ok := p.store.postProject(name)
 
-	j, _ := json.Marshal(pID)
+	j, _ := json.Marshal(prj)
 	w.Header().Set("Content-Type", "Application/Json")
 	if ok {
 		w.WriteHeader(http.StatusOK)
@@ -70,9 +57,9 @@ func (p *ProjectHandler) postProjectHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (p *ProjectHandler) ListProjectsHandler(w http.ResponseWriter, r *http.Request) {
-	prj, ok := p.store.getProjects()
 
-	j, _ := json.Marshal(prj)
+	prjList, ok := p.store.getProjects()
+	j, _ := json.Marshal(prjList)
 	w.Header().Set("Content-Type", "Application/Json")
 	if ok {
 		w.WriteHeader(http.StatusOK)
@@ -99,22 +86,8 @@ func (p *ProjectHandler) putProjectHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (p *ProjectHandler) deleteProjectHandler(w http.ResponseWriter, r *http.Request, id string) {
-
-	type projectID struct {
-		ID     string `json:"ID"`
-		Status string `json:"status`
-	}
-	var pID projectID
-
-	ok := p.store.deleteProject(id)
-	pID.ID = id
-	if ok {
-		pID.Status = "Succeeded"
-	} else {
-		pID.Status = "Failed"
-	}
-
-	j, _ := json.Marshal(pID)
+	prjList, ok := p.store.deleteProject(id)
+	j, _ := json.Marshal(prjList)
 	w.Header().Set("Content-Type", "Application/Json")
 	if ok {
 		w.WriteHeader(http.StatusOK)

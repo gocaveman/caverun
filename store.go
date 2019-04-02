@@ -5,6 +5,7 @@ import (
 )
 
 type Project struct {
+	ID        string `json:"ID"`
 	Name      string `json:"name"`
 	Directory string `json:"directory"`
 }
@@ -13,25 +14,21 @@ type store struct {
 	Projects map[string]Project
 }
 
-func (s *store) newStore() *store {
-	str := new(store)
-	return str
-}
-
 //TODO - Add getRecentProjects, saveProject
+
 func (s *store) init() {
 
 	s.Projects = make(map[string]Project)
 
-	var prj Project
+	//var prj Project
 
-	for i := 1; i < 5; i++ {
-
-		ID := gouuid.NewB64().String()
-		prj.Name = "Name for: " + ID
-		prj.Directory = "Directory for: " + ID
-		s.Projects[ID] = prj
-	}
+	// for i := 1; i < 5; i++ {
+	// 	ID := gouuid.NewB64().String()
+	// 	prj.ID = ID
+	// 	prj.Name = "Name for: " + ID
+	// 	prj.Directory = "Directory for: " + ID
+	// 	s.Projects[ID] = prj
+	// }
 
 }
 
@@ -42,28 +39,42 @@ func (s *store) getProject(ID string) (prj Project, ok bool) {
 }
 
 // Gets a map of open projects
-func (s *store) getProjects() (prj map[string]Project, ok bool) {
-	return s.Projects, true
+func (s *store) getProjects() (prjList []Project, ok bool) {
+	for _, v := range s.Projects {
+		prjList = append(prjList, v)
+	}
+	return prjList, true
 }
 
 // Creates a new project in memory
-func (s *store) postProject() (ID string, ok bool) {
+func (s *store) postProject(name string) (prjList []Project, ok bool) {
 	var prj Project
-	ID = gouuid.NewB64().String()
-	prj.Name = "Name for: " + ID
-	prj.Directory = "Directory for: " + ID
-	s.Projects[ID] = prj
-	_, ok = s.Projects[ID]
-	return ID, ok
+	prj.ID = gouuid.NewB64().String()
+	if len(name) == 0 {
+		prj.Name = "Name for: " + prj.ID
+		prj.Directory = "Directory for: " + prj.ID
+	} else {
+		prj.Name = name
+		prj.Directory = "Directory for: " + name
+
+	}
+	s.Projects[prj.ID] = prj
+	_, ok = s.Projects[prj.ID]
+	for _, v := range s.Projects {
+		prjList = append(prjList, v)
+	}
+	return prjList, ok
 }
 
 // Deletes an open projects from memory
-func (s *store) deleteProject(ID string) (ok bool) {
+func (s *store) deleteProject(ID string) (prjList []Project, ok bool) {
 	delete(s.Projects, ID)
 	_, ok = s.Projects[ID]
 	ok = !ok
-
-	return ok
+	for _, v := range s.Projects {
+		prjList = append(prjList, v)
+	}
+	return prjList, ok
 }
 
 //Saves a project to disk -- Dummy for now
